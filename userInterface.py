@@ -1,6 +1,7 @@
 import gptContact
 import chatLogger
 import aiCommand
+import logReader
 
 
 def startSession():
@@ -12,10 +13,11 @@ def startSession():
     messages = [
         "初期化完了。",
         "Clear、またはcと入力すると、文脈をクリアします。",
+        "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
         "End、またはeと入力すると、セッションを終了します。",
         "会話を開始します。",
     ]
-    print("\n".join(messages))
+    printMessage("\n".join(messages))
 
     # 会話ループを開始する
     chatLoop()
@@ -25,6 +27,7 @@ def chatLoop():
     """
     ユーザーが会話をする。ユーザーの入力によってコマンドがある：
         Clear、またはcと入力すると、文脈をクリア。
+        Log、またはlと入力すると、最新のログを参照する（文脈には含まれない）。
         End、またはeと入力すると、ログを記録し、セッションを終了する。
     """
 
@@ -34,20 +37,31 @@ def chatLoop():
             gptContact.clearContext()
             commandText = "=== 文脈をクリアします。AIは記憶を失いますが、会話は続行できます ==="
             chatLogger.log("command", commandText)
-            print(commandText)
+            printMessage(commandText)
+            continue
+
+        if question == "Log" or question == "log" or question == "l":
+            commandText = "=== 最新のログを表示します ==="
+            printMessage(commandText)
+            log = logReader.ReadLatestJson()
+            printMessage(log)
+            commandText = "=== 以上が最新のログです ==="
+            printMessage(commandText)
+            commandText = "=== 最新のログを表示しました（記録上は省略） ==="
+            chatLogger.log("command", commandText)
             continue
 
         if question == "End" or question == "end" or question == "e":
             commandText = "=== ログを記録しました。セッションを終了します ==="
             chatLogger.log("command", commandText)
             chatLogger.saveJson()
-            print(commandText)
+            printMessage(commandText)
             break
 
         chatLogger.log("user", question)
         response = gptContact.ask(question)
         chatLogger.log("assistant", response)
-        print("AI: " + response)
+        printMessage("AI: " + response)
         aiCommand.executeCommand(response)
 
 # メッセージを表示する
