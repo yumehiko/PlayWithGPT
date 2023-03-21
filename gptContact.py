@@ -7,13 +7,16 @@ context = []
 
 def initialize():
     """
-    クラスを初期化する。APIキーを設定す
+    クラスを初期化する。APIキーを渡し、文脈を初期化する。
     """
 
     # 設定ファイルからAPIキーを読み込む
     with open("key.yaml") as key_file:
         config = yaml.safe_load(key_file)
         openai.api_key = config["openai"]["api_key"]
+
+    # 文脈を初期化する
+    clearContext()
 
 
 def ask(question_body):
