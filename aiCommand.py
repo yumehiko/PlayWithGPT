@@ -1,7 +1,9 @@
 import chatLogger
+import userInterface
+import moduleGenerator
 
 # コマンドのリスト
-commandList = ["apple"]
+commandList = ["generateModule: "]
 
 # 発言がexecute: から始まる場合、コマンドリストから適合するコマンドを探し、実行する。
 def executeCommand(voice):
@@ -10,20 +12,13 @@ def executeCommand(voice):
     
     voice = voice[9:]
 
-    if not voice in commandList:
-        prompt = "コマンドが見つかりませんでした。"
-        print(prompt)
-        chatLogger.log(prompt)
-        return
-    
-    if voice == "apple":
-        prompt = "=== りんごパーティだ！！　うおおお！！！ ==="
-        print(prompt)
+    if voice.startswith("generateModule: "):
+        file_name = moduleGenerator.write_py_file(voice[16:])
+        prompt = "=== ChatGPTがモジュール：" + file_name + "を生成しました ==="
+        userInterface.printMessage(prompt)
         chatLogger.log("command", prompt)
+        return
 
-# 発言を受けて、その発言がコマンドリストに含まれているかを返す。
-def isCommand(voice):
-    if voice in commandList:
-        return True
-    else:
-        return False
+    prompt = voice[:20] +"は不明なコマンドです。"
+    userInterface.printMessage(prompt)
+    chatLogger.log("command", prompt)

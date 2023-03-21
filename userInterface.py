@@ -49,3 +49,7 @@ def chatLoop():
         chatLogger.log("assistant", response)
         print("AI: " + response)
         aiCommand.executeCommand(response)
+
+# メッセージを表示する
+def printMessage(message):
+    print(message)
