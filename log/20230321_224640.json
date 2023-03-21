@@ -1,0 +1,32 @@
+[
+    {
+        "role": "user",
+        "content": "どうもどうも。フィボナッチ数列を10個数え上げるコードを書いてください。",
+        "datetime": "2023/03/21 22:46:08"
+    },
+    {
+        "role": "assistant",
+        "content": "execute: generateModule: fibonacci.py\n\n以下がコードになります。\n\n```python:fibonacci.py\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    else:\n        return(fibonacci(n-1) + fibonacci(n-2))\n\nfibonacci_sequence = []\nfor i in range(10):\n    fibonacci_sequence.append(fibonacci(i))\n\nprint(fibonacci_sequence)\n```",
+        "datetime": "2023/03/21 22:46:15"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：modules/fibonacci.pyを生成しました ===",
+        "datetime": "2023/03/21 22:46:15"
+    },
+    {
+        "role": "user",
+        "content": "最高！　どうもありがとう！",
+        "datetime": "2023/03/21 22:46:37"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして！なにかあれば遠慮なくお聞きください。",
+        "datetime": "2023/03/21 22:46:39"
+    },
+    {
+        "role": "command",
+        "content": "=== ログを記録しました。セッションを終了します ===",
+        "datetime": "2023/03/21 22:46:40"
+    }
+]

@@ -1,23 +1,14 @@
-import gptContact
-import chatLogger
-import aiCommand
-import logReader
+from modules import gptContact
+from modules  import chatLogger
+from modules  import aiCommand
+from modules  import logReader
+from modules  import findModule
 
 
 def startSession():
     """
     GPT-3との会話を開始する
     """
-
-    # プロンプトメッセージを表示する
-    messages = [
-        "初期化完了。",
-        "Clear、またはcと入力すると、文脈をクリアします。",
-        "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
-        "End、またはeと入力すると、セッションを終了します。",
-        "会話を開始します。",
-    ]
-    printMessage("\n".join(messages))
 
     # 会話ループを開始する
     chatLoop()
@@ -51,6 +42,16 @@ def chatLoop():
             chatLogger.log("command", commandText)
             continue
 
+        if question.startswith("read: "):
+            question = question[6:]
+            file_name = question.split(".py")[0] + ".py"
+            source_code = findModule.findSourceCode(file_name)
+            commandText = file_name + "について話します。内容は、次の通りです：\n" + source_code
+            gptContact.sendUserMessage(commandText)
+            printMessage(commandText)
+            chatLogger.log("command", commandText)
+            continue
+
         if question == "End" or question == "end" or question == "e":
             commandText = "=== ログを記録しました。セッションを終了します ==="
             chatLogger.log("command", commandText)
@@ -67,3 +68,4 @@ def chatLoop():
 # メッセージを表示する
 def printMessage(message):
     print(message)
+    print("")

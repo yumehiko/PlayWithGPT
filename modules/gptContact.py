@@ -25,6 +25,21 @@ def initialize(mode=""):
     context.append(formatted_mode)
 
 
+def sendSystemMessage(message):
+    """
+    role:systemとしてAPIにメッセージを送る
+    """
+    formatted_message = {"role": "system", "content": message}
+    context.append(formatted_message)
+
+def sendUserMessage(message):
+    """
+    role:userとしてAPIにメッセージを送る
+    """
+    formatted_message = {"role": "user", "content": message}
+    context.append(formatted_message)
+
+
 def ask(question_body):
     """
     GPT-3にこれまでの文脈に加えた質問を投げ、その本文を返し、文脈を記憶する。

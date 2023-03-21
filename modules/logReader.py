@@ -1,7 +1,6 @@
 import os
 import glob
 import json
-import userInterface
 
 def ReadLatestJson():
     # フォルダ内の全てのファイルパスを取得し、新しいもの順にソートして最も新しいファイルを取得
