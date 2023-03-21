@@ -1,11 +1,11 @@
 import yaml
 import openai
 
-# これまでの会話のコンテキストの配列
+# これまでの会話の文脈
 context = []
 
 
-def initialize():
+def initialize(mode=""):
     """
     クラスを初期化する。APIキーを渡し、文脈を初期化する。
     """
@@ -18,10 +18,16 @@ def initialize():
     # 文脈を初期化する
     clearContext()
 
+    # モードを設定する
+    if mode == "":
+        return
+    formatted_mode = {"role": "system", "content": mode}
+    context.append(formatted_mode)
+
 
 def ask(question_body):
     """
-    GPT-3にこれまでの文脈に加えた質問を投げ、その本文を返し、文脈を記録する。
+    GPT-3にこれまでの文脈に加えた質問を投げ、その本文を返し、文脈を記憶する。
     """
 
     # APIKeyが設定済みか確認し、Keyが無い場合は例外を返す

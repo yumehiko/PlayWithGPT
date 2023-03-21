@@ -1,5 +1,6 @@
 import gptContact
 import chatLogger
+import aiCommand
 
 
 def startSession():
@@ -29,21 +30,22 @@ def chatLoop():
 
     while True:
         question = input("あなた: ")
-        if question == "Clear" or question == "c":
+        if question == "Clear" or question == "clear" or question == "c":
             gptContact.clearContext()
             commandText = "=== 文脈をクリアします。AIは記憶を失いますが、会話は続行できます ==="
-            chatLogger.logUserCommand(commandText)
+            chatLogger.log("command", commandText)
             print(commandText)
             continue
 
-        if question == "End" or question == "e":
+        if question == "End" or question == "end" or question == "e":
             commandText = "=== ログを記録しました。セッションを終了します ==="
-            chatLogger.logUserCommand(commandText)
-            chatLogger.saveLog()
+            chatLogger.log("command", commandText)
+            chatLogger.saveJson()
             print(commandText)
             break
 
-        chatLogger.logUserInput(question)
+        chatLogger.log("user", question)
         response = gptContact.ask(question)
-        chatLogger.logAIResponse(response)
+        chatLogger.log("assistant", response)
         print("AI: " + response)
+        aiCommand.executeCommand(response)

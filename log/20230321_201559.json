@@ -1,0 +1,32 @@
+[
+    {
+        "role": "user",
+        "content": "こんにちは。早速だけど、appleコマンドを実行して。",
+        "datetime": "2023/03/21 20:15:47"
+    },
+    {
+        "role": "assistant",
+        "content": "execute: apple",
+        "datetime": "2023/03/21 20:15:47"
+    },
+    {
+        "role": "command",
+        "content": "=== りんごパーティだ！！　うおおお！！！ ===",
+        "datetime": "2023/03/21 20:15:47"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう。セッションを終わります。",
+        "datetime": "2023/03/21 20:15:55"
+    },
+    {
+        "role": "assistant",
+        "content": "了解しました。お疲れ様でした。",
+        "datetime": "2023/03/21 20:15:57"
+    },
+    {
+        "role": "command",
+        "content": "=== ログを記録しました。セッションを終了します ===",
+        "datetime": "2023/03/21 20:15:59"
+    }
+]

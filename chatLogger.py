@@ -10,43 +10,19 @@ def initialize():
     logData.clear()
 
 
-def logUserInput(question):
+def log(role, prompt):
     """
-    ユーザーのテキスト入力を受けて、整形したjson形式の情報をlogDataに追加する
-    """
-    # 発言日時を取得
-    now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    # 発言内容を整形
-    formatted_question = {"role": "user", "content": question, "datetime": now}
-    # logDataに追加
-    logData.append(formatted_question)
-
-
-def logAIResponse(response):
-    """
-    アシスタントの発言を受けて、整形したjson形式の情報をlogDataに追加する
+    指定された話者と文字列からログを記録する。
     """
     # 発言日時を取得
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     # 発言内容を整形
-    formatted_response = {"role": "assistant", "content": response, "datetime": now}
+    formatted_prompt = {"role": role, "content": prompt, "datetime": now}
     # logDataに追加
-    logData.append(formatted_response)
+    logData.append(formatted_prompt)
 
 
-def logUserCommand(command):
-    """
-    ユーザーのコマンドを受けて、整形したjson形式の情報をlogDataに追加する
-    """
-    # 発言日時を取得
-    now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    # 発言内容を整形
-    formatted_command = {"role": "command", "content": command, "datetime": now}
-    # logDataに追加
-    logData.append(formatted_command)
-
-
-def saveLog():
+def saveJson():
     """
     ログデータをjson形式で保存する
     """
