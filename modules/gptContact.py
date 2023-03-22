@@ -65,6 +65,8 @@ def ask(question_body):
     # 返答を整形する。
     response_body = response["choices"][0]["message"]["content"]
     formatted_response = {"role": "assistant", "content": response_body}
+    
+
 
     # 文脈を追記する
     context.append(formatted_question)

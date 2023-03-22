@@ -1,8 +1,8 @@
 from modules import gptContact
-from modules  import chatLogger
-from modules  import aiCommand
-from modules  import logReader
-from modules  import findModule
+from modules import chatLogger
+from modules import aiCommand
+from modules import logReader
+from modules import findModule
 
 
 def startSession():
@@ -67,5 +67,4 @@ def chatLoop():
 
 # メッセージを表示する
 def printMessage(message):
-    print(message)
-    print("")
+    print(message + "\n")

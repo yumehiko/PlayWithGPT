@@ -1,0 +1,37 @@
+[
+    {
+        "role": "user",
+        "content": "APIでの通信で、ChatGPTがどれほどのトークンを現在使っているかを知るにはどうすればよいですか。",
+        "datetime": "2023/03/22 00:33:21"
+    },
+    {
+        "role": "assistant",
+        "content": "ChatGPTがどれほどのトークンを使用しているかを知るためには、OpenAI APIへのリクエストで返されるレスポンスの中で、`usage`フィールドを見る必要があります。以下はその例です。\n\n```python\nimport openai\nopenai.api_key = \"YOUR_API_KEY\"\n\nresponse = openai.Completion.create(\n    engine=\"davinci\",\n    prompt=\"Hello, world\",\n    max_tokens=5\n)\n\nprint(response.choices[0].text)\nprint(response.usage)\n```\n\nレスポンスの`usage`フィールドには、`tokens`と`text_units`の2つのサブフィールドが含まれます。`tokens`は、OpenAI APIが利用したトークンの数であり、`text_units`は、OpenAI APIが利用したテキストユニットの数を表します。ただし、この値は、現在の月の開始以降のユーザーアカウント全体での使用状況を表しているため、ChatGPTが使用したトークン数を個別に特定することはできません。",
+        "datetime": "2023/03/22 00:33:40"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう。それは累計の話ですか？　現在のセッションでのトークン数を知りたい場合は？",
+        "datetime": "2023/03/22 00:34:28"
+    },
+    {
+        "role": "assistant",
+        "content": "すみません、先程の回答は誤りでした。現在のセッションで生成されたトークン数を知るには、OpenAI APIのレスポンスに含まれる「completion」オブジェクトに含まれる「tokens」フィールドを見る必要があります。以下はその例です。\n\n```python\nimport openai\nopenai.api_key = \"YOUR_API_KEY\"\n\nresponse = openai.Completion.create(\n    engine=\"davinci\",\n    prompt=\"Hello, world\",\n    max_tokens=5\n)\n\nprint(response.choices[0].text)\nprint(response.completion_info.tokens_used)\n```\n\n`response.completion_info.tokens_used`によって、現在のセッションで生成されたトークン数が取得できます。また、Text Generationエンドポイントを使えば、リクエストのHTTPヘッダーに`OpenAI-Session`を追加して、同じセッションIDを渡すこともできます。同じセッションIDを使用する場合、セッション全体で生成されたトークンの合計を確認することができます。",
+        "datetime": "2023/03/22 00:34:49"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう！",
+        "datetime": "2023/03/22 00:35:21"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして！他にも何か質問があれば、なんでも聞いてくださいね。",
+        "datetime": "2023/03/22 00:35:23"
+    },
+    {
+        "role": "command",
+        "content": "=== ログを記録しました。セッションを終了します ===",
+        "datetime": "2023/03/22 00:35:25"
+    }
+]

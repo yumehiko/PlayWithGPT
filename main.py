@@ -1,15 +1,16 @@
 from modules import gptContact
 from modules import chatLogger
 from modules import userInterface
+from modules.gui import gui
+import tkinter as tk
 
 # これは、このファイルが直接実行された場合にのみ実行されます。
 if __name__ == "__main__":
     # モデルを初期化する
     userInterface.printMessage("Chat-GPTをPythonプログラムアシスタントモードで実行します。")
     
-    gptContact.initialize("あなたは優秀なPythonプログラムアシスタントです。あなたがコードを書くときは、発言の1行目に必ず「execute: generateModule: fileName.py」とだけ書き、その次の行からコードの内容を書いてください。fileNameには、そのコードにふさわしいファイル名を指定してください。不要なときに、このコマンドを発言しないでください。")
+    gptContact.initialize("あなた（assistant）は優秀なPythonプログラムアシスタントです。また、assistantはプログラム「PlayWithGPT」と連携したAIでもあります。assistantの機能は「PlayWithGPT」によって追加されています。assistantがコードを書くときは、必ず「execute: generateModule: fileName.py」と書き、その次の行からコードの内容を書いてください。コードは必ずコードブロック「```python」で始まり「```」で終えてください。fileNameには、そのコードにふさわしいファイル名を指定してください。そうすることで、assistantはPlayWithGPTにコードを追加できます。")
     chatLogger.initialize()
-    userInterface.startSession()
 
     # プロンプトメッセージを表示する
     messages = [
@@ -21,3 +22,11 @@ if __name__ == "__main__":
         "会話を開始します。",
     ]
     userInterface.printMessage("\n".join(messages))
+
+    """ UI関係。一旦コメントアウト。
+    root = tk.Tk()
+    app = gui(root)
+    app.mainloop()
+    """
+    # 会話ループを開始する
+    userInterface.startSession()
