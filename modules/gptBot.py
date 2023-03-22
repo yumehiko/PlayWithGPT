@@ -20,23 +20,15 @@ class GPTBot:
         
         # モードを設定する
         if mode:
-            self.send_system_message(mode)
-    
-    def send_system_message(self, message):
-        """
-        role: system として API にメッセージを送る
-        """
-        formatted_message = {"role": "system", "content": message}
+            self.send_message_by("system", mode)
+
+
+    def send_message_by(self, role, message):
+        formatted_message = {"role": role, "content": message}
         self.context.append(formatted_message)
     
-    def send_user_message(self, message):
-        """
-        role: user として API にメッセージを送る
-        """
-        formatted_message = {"role": "user", "content": message}
-        self.context.append(formatted_message)
-    
-    def request_message(self):
+
+    def request_response(self):
         """
         GPT-3 にこれまでの文脈を渡し、発言を要求し、その本文を返し、文脈を記憶する。
         """
