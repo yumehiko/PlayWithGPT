@@ -1,0 +1,37 @@
+[
+    {
+        "role": "command",
+        "content": "gptContact.pyについて話します。内容は、次の通りです：\nimport yaml\nimport openai\n\n# これまでの会話の文脈\ncontext = []\n\n\ndef initialize(mode=\"\"):\n    \"\"\"\n    クラスを初期化する。APIキーを渡し、文脈を初期化する。\n    \"\"\"\n\n    # 設定ファイルからAPIキーを読み込む\n    with open(\"key.yaml\") as key_file:\n        config = yaml.safe_load(key_file)\n        openai.api_key = config[\"openai\"][\"api_key\"]\n\n    # 文脈を初期化する\n    clearContext()\n\n    # モードを設定する\n    if mode == \"\":\n        return\n    sendSystemMessage(mode)\n\n\ndef sendSystemMessage(message):\n    \"\"\"\n    role:systemとしてAPIにメッセージを送る\n    \"\"\"\n    formatted_message = {\"role\": \"system\", \"content\": message}\n    context.append(formatted_message)\n\n\ndef sendUserMessage(message):\n    \"\"\"\n    role:userとしてAPIにメッセージを送る\n    \"\"\"\n    formatted_message = {\"role\": \"user\", \"content\": message}\n    context.append(formatted_message)\n\n\ndef requestMessage():\n    \"\"\"\n    GPT-3にこれまでの文脈を渡し、発言を要求し、その本文を返し、文脈を記憶する。\n    \"\"\"\n    \n    # APIKeyが設定済みか確認し、Keyが無い場合は例外を返す\n    if openai.api_key is None:\n        raise ValueError(\"APIKey is not set.\")\n\n    # 文脈があるなら、文脈を追加する。\n    if not context:\n        prompts = []\n    else:\n        prompts = context\n\n    response = openai.ChatCompletion.create(\n        model=\"gpt-3.5-turbo\",\n        messages=prompts,\n    )\n\n    # 返答を整形する。\n    response_body = response[\"choices\"][0][\"message\"][\"content\"]\n    formatted_response = {\"role\": \"assistant\", \"content\": response_body}\n\n    # 文脈を追記する\n    context.append(formatted_response)\n\n    return response_body\n\n\ndef clearContext():\n    \"\"\"\n    文脈をクリアする\n    \"\"\"\n    context.clear()\n",
+        "datetime": "2023/03/22 16:11:37"
+    },
+    {
+        "role": "user",
+        "content": "このモジュールは、1つの会話を管理するものですが、複数の会話を管理したい場合、モジュールをクラスの形に書き換え、複数のインスタンスを利用でいるようにしたいです。コードを書いてください。ファイル名はgptBot.pyとしてください。",
+        "datetime": "2023/03/22 16:15:32"
+    },
+    {
+        "role": "assistant",
+        "content": "execute: generateModule: gptBot.py\n\n```python\nimport yaml\nimport openai\n\nclass GPTBot:\n    def __init__(self, mode=\"\"):\n        \"\"\"\n        クラスを初期化する。APIキーを渡し、文脈を初期化する。\n        \"\"\"\n        # 設定ファイルからAPIキーを読み込む\n        with open(\"key.yaml\") as key_file:\n            config = yaml.safe_load(key_file)\n            openai.api_key = config[\"openai\"][\"api_key\"]\n        \n        # 会話の文脈を初期化する\n        self.context = []\n        \n        # モードを設定する\n        if mode:\n            self.send_system_message(mode)\n    \n    def send_system_message(self, message):\n        \"\"\"\n        role: system として API にメッセージを送る\n        \"\"\"\n        formatted_message = {\"role\": \"system\", \"content\": message}\n        self.context.append(formatted_message)\n    \n    def send_user_message(self, message):\n        \"\"\"\n        role: user として API にメッセージを送る\n        \"\"\"\n        formatted_message = {\"role\": \"user\", \"content\": message}\n        self.context.append(formatted_message)\n    \n    def request_message(self):\n        \"\"\"\n        GPT-3 にこれまでの文脈を渡し、発言を要求し、その本文を返し、文脈を記憶する。\n        \"\"\"\n        # APIキーが設定済みか確認し、設定されていない場合は例外を返す\n        if not openai.api_key:\n            raise ValueError(\"APIKey is not set.\")\n        \n        # 文脈があるなら、文脈を追加する。\n        if not self.context:\n            prompts = []\n        else:\n            prompts = self.context\n        \n        response = openai.Completion.create(\n            engine=\"davinci\",\n            prompt=prompts,\n            max_tokens=1024,\n            n=1,\n            stop=None,\n            temperature=0.7,\n        )\n        \n        # 返答を整形する。\n        response_body = response.choices[0].text.strip()\n        formatted_response = {\"role\": \"assistant\", \"content\": response_body}\n\n        # 文脈を追記する\n        self.context.append(formatted_response)\n\n        return response_body\n    \n    def clear_context(self):\n        \"\"\"\n        文脈をクリアする。\n        \"\"\"\n        self.context = []\n```",
+        "datetime": "2023/03/22 16:16:03"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：modules/gptBot.pyを生成しました ===",
+        "datetime": "2023/03/22 16:16:03"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう！",
+        "datetime": "2023/03/22 16:17:33"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして。何か他に質問があれば、遠慮なくお聞きください。",
+        "datetime": "2023/03/22 16:17:36"
+    },
+    {
+        "role": "command",
+        "content": "=== ログを記録しました。セッションを終了します ===",
+        "datetime": "2023/03/22 16:17:37"
+    }
+]
