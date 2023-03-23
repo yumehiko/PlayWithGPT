@@ -11,7 +11,7 @@ class GPTBot:
         """
         
         #personaを読み込み、botのmodel_id、name、personalityを設定する。
-        with open("personas/" + persona_name + ".json") as persona_file:
+        with open("personas/" + persona_name + ".json", encoding="utf-8") as persona_file:
             persona = json.load(persona_file)
             self.model_id = persona["model_id"]
             self.name = persona["name"]
