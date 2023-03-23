@@ -1,8 +1,9 @@
 import yaml
 import openai
+from typing import List, Dict
 
 # これまでの会話の文脈
-context = []
+context: List[Dict[str, str]] = []
 
 
 def initialize(mode=""):

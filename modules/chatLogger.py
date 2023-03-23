@@ -1,7 +1,11 @@
 import json
 from datetime import datetime
+from modules.loggableMessage import LoggableMessage
+from typing import List, Dict
 
-logData = []
+# logData: ログデータを格納するリスト
+logData: List[Dict[str, str]] = []
+
 
 def initialize():
     """
@@ -10,21 +14,23 @@ def initialize():
     logData.clear()
 
 
-def log(role, prompt):
+def log(message: LoggableMessage):
     """
     指定された話者と文字列からログを記録する。
     """
     # 発言日時を取得
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     # 発言内容を整形
-    formatted_prompt = {"role": role, "content": prompt, "datetime": now}
+    formatted_prompt = {"role": message.talker.name,
+                        "content": message.text,
+                        "datetime": now}
     # logDataに追加
     logData.append(formatted_prompt)
 
 
 def saveJson():
     """
-    ログデータをjson形式で保存する
+    これまでに記録したログデータをjson形式で保存する
     """
     # ファイル名を取得
     now = datetime.now().strftime("%Y%m%d_%H%M%S")

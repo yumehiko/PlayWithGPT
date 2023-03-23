@@ -1,26 +1,27 @@
-import yaml
 import openai
+import json
 
 class GPTBot:
-
-    def __init__(self, mode="", model_id="gpt-3.5-turbo"):
+    """
+    会話の相手となるChatGPT-Bot。
+    """
+    def __init__(self, persona_name=""):
         """
-        クラスを初期化する。APIキーを渡し、文脈を初期化する。
+        persona_nameは、このBotの人格を表すjsonファイルの名前。
         """
-        # 設定ファイルからAPIキーを読み込む
-        with open("key.yaml") as key_file:
-            config = yaml.safe_load(key_file)
-            openai.api_key = config["openai"]["api_key"]
+        
+        #personaを読み込み、botのmodel_id、name、personalityを設定する。
+        with open("personas/" + persona_name + ".json") as persona_file:
+            persona = json.load(persona_file)
+            self.model_id = persona["model_id"]
+            self.name = persona["name"]
+            self.personality = persona["personality"]
         
         # 会話の文脈を初期化する
         self.context = []
 
-        # model_idを設定する
-        self.model_id = model_id
-        
-        # モードを設定する
-        if mode:
-            self.send_message_by("system", mode)
+        # personalityを文脈に追加する
+        self.send_message_by("system", self.personality)
 
 
     def send_message_by(self, role, message):
@@ -32,17 +33,14 @@ class GPTBot:
         """
         GPT-3 にこれまでの文脈を渡し、発言を要求し、その本文を返し、文脈を記憶する。
         """
-        # APIキーが設定済みか確認し、設定されていない場合は例外を返す
-        if not openai.api_key:
-            raise ValueError("APIKey is not set.")
-        
+
         response = openai.ChatCompletion.create(
             model=self.model_id,
             messages=self.context,
         )
             
         # 返答を整形する。
-        response_body = response.choices[0].text.strip()
+        response_body = response["choices"][0]["message"]["content"]
         formatted_response = {"role": "assistant", "content": response_body}
 
         # 文脈を追記する

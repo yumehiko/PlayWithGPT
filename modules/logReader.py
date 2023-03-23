@@ -14,9 +14,9 @@ def ReadLatestJson():
     formatted_data = []
     for message in data:
         formatted_message = {
-            "speaker": message["role"],
+            "role": message["role"],
             "content": message["content"],
-            "time": message["datetime"]
+            "datetime": message["datetime"]
         }
         formatted_data.append(formatted_message)
 

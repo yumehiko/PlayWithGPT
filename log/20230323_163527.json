@@ -1,0 +1,37 @@
+[
+    {
+        "role": "command",
+        "content": "=== PlayWithGPT CUIモード ===\nClear、またはcと入力すると、文脈をクリアします。\nLog、またはlと入力すると、最新のログを参照します（文脈には含まれない）。\nread: fileName.pyと入力すると、fileName.pyのソースコードを読み上げます。\nEnd、またはeと入力すると、セッションを終了します。\n=== 会話を開始します ===",
+        "datetime": "2023/03/23 16:34:47"
+    },
+    {
+        "role": "user",
+        "content": "フィボナッチ数を10個あげるコードを書いてください。",
+        "datetime": "2023/03/23 16:34:57"
+    },
+    {
+        "role": "assistant",
+        "content": "execute: generateModule: fibonacci.py\n\n以下がコードになります。\n\n\n```python\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    else:\n        return fibonacci(n-1) + fibonacci(n-2)\n\nfor i in range(10):\n    print(fibonacci(i))\n``` \n\nこのコードでは、再帰関数を使ってフィボナッチ数列を計算しています。forループを用いて、10個のフィボナッチ数を出力しています。任意の数に対してフィボナッチ数を計算するには、nの値を変更してください。",
+        "datetime": "2023/03/23 16:35:04"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：modules/fibonacci.pyを生成しました ===",
+        "datetime": "2023/03/23 16:35:04"
+    },
+    {
+        "role": "user",
+        "content": "すばらしい。ありがとうございます。これでセッションを終わります。",
+        "datetime": "2023/03/23 16:35:23"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして。また何かありましたらお気軽にお声がけください。良い一日をお過ごしください！",
+        "datetime": "2023/03/23 16:35:26"
+    },
+    {
+        "role": "command",
+        "content": "=== ログを記録しました。セッションを終了します ===",
+        "datetime": "2023/03/23 16:35:27"
+    }
+]
