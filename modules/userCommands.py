@@ -4,12 +4,12 @@ from modules.talker_type import TalkerType
 from modules import gptContact
 from modules import logReader
 from modules import file_finder
-from rx.subject import BehaviorSubject
+from rx.subject import Subject
 
 class UserCommands:
     def __init__(self):
-        self.print_message = BehaviorSubject(LoggableMessage(TalkerType.none, "", False))
-        self.send_message = BehaviorSubject(LoggableMessage(TalkerType.none, "", False))
+        self.print_message = Subject()
+        self.send_message = Subject()
 
 
     def try_run_command(self, question : str) -> UserCommandType:

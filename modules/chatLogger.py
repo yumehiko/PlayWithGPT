@@ -18,6 +18,11 @@ def log(message: LoggableMessage):
     """
     指定された話者と文字列からログを記録する。
     """
+
+    # ログを記録しない場合は何もしない
+    if not message.should_log:
+        return
+
     # 発言日時を取得
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     # 発言内容を整形

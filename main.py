@@ -3,11 +3,14 @@
 """
 
 from modules.gptBot import GPTBot
-from modules import cui
+from modules.cui import CUI
+from modules.chat_controller import ChatController
 
 if __name__ == "__main__":
     # ボットを初期化する
     assistant = GPTBot("assistant")
+    cui = CUI()
+    controller = ChatController(cui)
 
-    # CUIモードの会話ループを開始する
-    cui.one_on_one_session(assistant)
+    # CUIモードの会話ループを開始する。
+    controller.one_on_one_session(assistant)

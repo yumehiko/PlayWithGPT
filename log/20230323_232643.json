@@ -1,0 +1,52 @@
+[
+    {
+        "role": "user",
+        "content": "こんにちは。",
+        "datetime": "2023/03/23 23:22:44"
+    },
+    {
+        "role": "assistant",
+        "content": "こんにちは。何かお力になれることがあれば、是非お聞かせください。",
+        "datetime": "2023/03/23 23:22:51"
+    },
+    {
+        "role": "user",
+        "content": "現在、CUIのテスト中です。PlayWithGPTは現在CUIモードで動作しています。",
+        "datetime": "2023/03/23 23:23:07"
+    },
+    {
+        "role": "assistant",
+        "content": "了解しました。何かお試しいただけることがありましたら、おっしゃってください。",
+        "datetime": "2023/03/23 23:23:09"
+    },
+    {
+        "role": "command",
+        "content": "=== cui.pyのソースコードを読み上げました ===",
+        "datetime": "2023/03/23 23:24:29"
+    },
+    {
+        "role": "user",
+        "content": "このコードの、clear_input()関数が正しく動くことを期待しています。このコードユーザーが入力した文字列を、CUI上から削除するための関数ですが、現状はうまく動いていません。",
+        "datetime": "2023/03/23 23:25:17"
+    },
+    {
+        "role": "assistant",
+        "content": "# execute: generateModule: cui.py\n# cui.py\nfrom modules.loggableMessage import LoggableMessage\nfrom modules.talker_type import TalkerType\nfrom modules.abstract_ui import AbstractUI\nimport colorama\nimport sys\n\n\nclass CUI(AbstractUI):\n    def __init__(self):\n        colorama.init()\n\n    def print_manual(self):\n        # ユーザーマニュアルを表示する\n        manual = [\n            \"=== PlayWithGPT CUIモード ===\",\n            \"Clear、またはcと入力すると、文脈をクリアします。\",\n            \"Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。\",\n            \"read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。\",\n            \"End、またはeと入力すると、セッションを終了します。\",\n            \"=== 会話を開始します ===\",\n        ]\n\n        self.print_message(LoggableMessage(TalkerType.command, \"\\n\".join(manual)))\n\n    def user_input(self) -> str:\n        # ユーザーの入力を待つ。\n        input_text = input(\"You: \")\n        # ユーザーの入力を、CUI上から消す\n        self.clear_input(input_text)\n        return input_text\n\n    def print_message(self, message: LoggableMessage) -> None:\n        color = colorama.Fore.WHITE\n        reset = colorama.Style.RESET_ALL\n\n        if message.talker == TalkerType.assistant:\n            color = colorama.Fore.CYAN\n        elif message.talker == TalkerType.command:\n            color = colorama.Fore.YELLOW\n\n        print(color + message.text + reset)\n\n        # 空行を入れる\n        print()\n\n    def clear_input(self, input_text:str) -> None:\n        \"\"\"\n        ユーザーの入力を、CUI上から消す\n        \"\"\"\n        sys.stdout.write(\"\\033[2KYou: \" + \" \"*len(input_text) + \"\\033[2K\")\n\n        sys.stdout.flush()",
+        "datetime": "2023/03/23 23:25:40"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：cui.pyを生成しました ===",
+        "datetime": "2023/03/23 23:25:40"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう。これでうまくいくとよいのですが。",
+        "datetime": "2023/03/23 23:26:38"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして。もし動作しない場合は、再度ご連絡ください。",
+        "datetime": "2023/03/23 23:26:40"
+    }
+]
