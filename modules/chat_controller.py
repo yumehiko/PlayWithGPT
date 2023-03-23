@@ -41,9 +41,9 @@ class ChatController:
         aiCommands.print_message.subscribe(self.print_loggable_message)
 
         self.view.print_manual()
-        
+
         while True:
-            question = self.view.user_input()
+            question = self.view.request_user_input()
             commandType = userCommands.try_run_command(question)
             # 終了コマンドが入力された場合、終了する。
             if commandType == UserCommandType.END:

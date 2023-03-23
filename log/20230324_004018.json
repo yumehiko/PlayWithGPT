@@ -1,0 +1,22 @@
+[
+    {
+        "role": "command",
+        "content": "=== abstract_ui.pyのソースコードを読み上げました ===",
+        "datetime": "2023/03/24 00:35:28"
+    },
+    {
+        "role": "command",
+        "content": "=== cui.pyのソースコードを読み上げました ===",
+        "datetime": "2023/03/24 00:35:30"
+    },
+    {
+        "role": "user",
+        "content": "cui.pyはabstract_ui.pyを継承し、PlayWithGPTのユーザーインターフェースを実装しています。cui.pyのGUIバージョン「gui.py」モジュールを書いてください。注意点として、cui.pyでは「request_user_input()」関数をinput()関数を使うことで適切に実装していますが、GUIの場合ユーザーの入力確定までプログラムをブロックする処理を書くのが難しいと思います。モジュールにはtkinterのほか、rxなども使ってかまいません。",
+        "datetime": "2023/03/24 00:37:21"
+    },
+    {
+        "role": "assistant",
+        "content": "# gui.py\nfrom modules.loggableMessage import LoggableMessage\nfrom modules.talker_type import TalkerType\nfrom modules.abstract_ui import AbstractUI\nimport tkinter as tk\nimport threading\nimport sys\n\n\nclass GUI(AbstractUI):\n    def __init__(self):\n        self.root = tk.Tk()  # rootウィンドウを生成\n        self.input_text = tk.StringVar()\n        self.input_text.trace(\"w\", self.on_entry_change)  # Entryの内容が変わった際のイベントリスナーを設定\n\n        # ウィジェットを生成\n        self.message_box = tk.Text(self.root, height=20, width=80, state=\"disabled\")\n        self.scrollbar = tk.Scrollbar(self.root, command=self.message_box.yview)\n        self.message_box.config(yscrollcommand=self.scrollbar.set)\n        self.entry = tk.Entry(self.root, width=80, textvariable=self.input_text)\n        self.send_button = tk.Button(self.root, width=8, bg=\"DodgerBlue\", fg=\"white\", text=\"Send\", command=self.send_message)\n\n        # ウィジェットを配置\n        self.message_box.pack(side=\"top\", fill=\"both\", expand=True)\n        self.scrollbar.pack(side=\"right\", fill=\"y\")\n        self.entry.pack(side=\"left\", padx=10, pady=10, fill=\"x\", expand=True)\n        self.send_button.pack(side=\"right\", padx=10)\n\n        # ユーザーの入力をフォーカスする\n        self.entry.focus_set()\n\n        # 背景色を設定\n        self.root.configure(background=\"#F0F0F0\")\n\n        # セッションクローズ時のイベントリスナーを設定\n        self.root.protocol(\"WM_DELETE_WINDOW\", self.close_session)\n\n        # スレッドを生成し、rootウィンドウを表示\n        self.t = threading.Thread(target=self.root.mainloop)\n        self.t.start()\n\n    def print_manual(self):\n        # ユーザーマニュアルを表示する\n        manual = [\n            \"=== PlayWithGPT GUIモード ===\",\n            \"Clear、またはcと入力すると、文脈をクリアします。\",\n            \"Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。\",\n            \"read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。\",\n            \"End、またはeと入力すると、セッションを終了します。\",\n            \"=== 会話を開始します ===\",\n        ]\n\n        self.print_message(LoggableMessage(TalkerType.command, \"\\n\".join(manual)))\n\n    def request_user_input(self) -> str:\n        # ユーザーの入力をフォーカスしたEntryで受け付けることができないので、\n        # 代わりに最後に受け付けた入力を返す\n        return self.input_text.get()\n\n    def send_message(self):\n        # 入力内容をログに追加し、エントリーの内容をクリアする。\n        input_text = self.input_text.get().strip()\n        self.message_box.config(state=\"normal\")\n        self.message_box.insert(\"end\", \"You: \" + input_text + \"\\n\\n\")\n        self.message_box.config(state=\"disabled\")\n        self.input_text.set(\"\")\n\n    def print_message(self, message: LoggableMessage) -> None:\n        talker = \"\"\n\n        if message.talker == TalkerType.user:\n            talker = \"You: \"\n        elif message.talker == TalkerType.assistant:\n            talker = \"Bot: \"\n        \n        # メッセージログに追加する\n        self.message_box.config(state=\"normal\")\n        self.message_box.insert(\"end\", talker + message.text + \"\\n\\n\")\n        self.message_box.config(state=\"disabled\")\n\n    def move_cursor_to_init_position(self, length: int) -> None:\n        # GUIでは、入力内容を操作するためのカーソルの移動などは必要ない。\n        pass\n\n    def on_entry_change(self, *args):\n        # ユーザーの入力が存在している間は、送信ボタンを有効にする。\n        # 空の場合は、無効にする。\n        if self.input_text.get().strip():\n            self.send_button.config(state=\"normal\")\n        else:\n            self.send_button.config(state=\"disabled\")\n\n    def close_session(self):\n        # ウィンドウが閉じられる時に呼ばれる\n        sys.exit()",
+        "datetime": "2023/03/24 00:39:12"
+    }
+]

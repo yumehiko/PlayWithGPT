@@ -1,0 +1,32 @@
+[
+    {
+        "role": "command",
+        "content": "=== cui.pyのソースコードを読み上げました ===",
+        "datetime": "2023/03/24 00:44:19"
+    },
+    {
+        "role": "user",
+        "content": "このコードは、PlayWithGPTのUIをCUIとして表現するViewモジュールです。MVCパターンに基づいてViewモジュールとして表現されています。これを参考に、tkinterモジュールを使ってgui.pyを書いてください。",
+        "datetime": "2023/03/24 00:44:28"
+    },
+    {
+        "role": "assistant",
+        "content": "# execute: generateModule: gui.py\n\nfrom modules.loggableMessage import LoggableMessage\nfrom modules.talker_type import TalkerType\nfrom modules.abstract_ui import AbstractUI\nimport tkinter as tk\n\n\nclass GUI(AbstractUI):\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.title(\"PlayWithGPT\")\n        self.root.geometry(\"600x400\")\n\n        self.text_area = tk.Text(self.root, height=20, wiidt=60)\n        self.text_area.pack()\n\n    def print_manual(self):\n        \"\"\"\n        ユーザーに対して、このアプリケーションの使い方を表示する。\n        \"\"\"\n        manual = [\n            \"=== PlayWithGPT GUIモード ===\",\n            \"Clearボタン、またはcと入力すると、文脈をクリアします。\",\n            \"Logボタン、またはlと入力すると、最新のログを参照します（文脈には含まれない）。\",\n            \"ファイル名を入力して、Readボタンを押すことで、ファイルのソースコードをBotに対して読み上げます。\",\n            \"Endボタン、またはeと入力すると、セッションを終了します。\",\n            \"=== 会話を開始します ===\",\n        ]\n\n        self.print_message(LoggableMessage(TalkerType.command, \"\\n\".join(manual)))\n\n    def request_user_input(self) -> str:\n        \"\"\"\n        ユーザーからの入力を待機し、入力された文字列を返す。\n        \"\"\"\n        self.text_area.config(state=\"normal\")\n        self.text_area.insert(tk.END, \"You: \")\n        self.text_area.config(state=\"disabled\")\n        self.user_input = tk.StringVar()\n        input_entry = tk.Entry(self.root, textvariable=self.user_input)\n        input_entry.place(x=50, y=200)\n        input_entry.focus()\n\n        def on_submit():\n            input_text = self.user_input.get()\n            self.text_area.config(state=\"normal\")\n            self.text_area.insert(tk.END, f\"You: {input_text}\\n\")\n            self.text_area.config(state=\"disabled\")\n            input_entry.destroy()\n\n        submit_btn = tk.Button(self.root, text=\"Submit\", command=on_submit)\n        submit_btn.place(x=200, y=200)\n\n        self.root.mainloop()\n\n        return self.user_input.get()\n\n    def print_message(self, message: LoggableMessage) -> None:\n        \"\"\"\n        メッセージを表示する。\n        \"\"\"\n        color = \"#000\"\n        talker = \"\"\n\n        if message.talker == TalkerType.assistant:\n            color = \"#ffcc00\"\n        elif message.talker == TalkerType.command:\n            color = \"#66b3ff\"\n\n        if message.talker == TalkerType.user:\n            talker = \"You: \"\n        elif message.talker == TalkerType.assistant:\n            talker = \"Bot: \"\n\n        self.text_area.config(state=\"normal\")\n        self.text_area.insert(tk.END, f\"{talker} {message.text}\\n\", (\"color\", color))\n        self.text_area.config(state=\"disabled\")\n        self.root.update()\n\n        # 空行を入れる\n        self.text_area.config(state=\"normal\")\n        self.text_area.insert(tk.END, \"\\n\")\n        self.text_area.config(state=\"disabled\")\n\n    def move_cursor_to_init_position(self, length: int) -> None:\n        \"\"\"\n        ユーザーの入力を消すために、カーソルを一番左に戻す。\n        \"\"\"\n        pass",
+        "datetime": "2023/03/24 00:45:07"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：gui.pyを生成しました ===",
+        "datetime": "2023/03/24 00:45:07"
+    },
+    {
+        "role": "user",
+        "content": "ありがとう。テストしてみます。セッションを終了します。",
+        "datetime": "2023/03/24 00:46:01"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして。ご確認いただきありがとうございます。また何かございましたらお知らせください。",
+        "datetime": "2023/03/24 00:46:03"
+    }
+]

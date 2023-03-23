@@ -1,0 +1,32 @@
+[
+    {
+        "role": "command",
+        "content": "=== cui.pyのソースコードを読み上げました ===",
+        "datetime": "2023/03/24 00:01:21"
+    },
+    {
+        "role": "user",
+        "content": "このコードは、PlayWithGPTのUIをCUIとして表現するViewモジュールです。MVCパターンに基づいてViewモジュールとして表現されています。これを参考に、tkinterモジュールを使ってgui.pyを書いてください。",
+        "datetime": "2023/03/24 00:02:59"
+    },
+    {
+        "role": "assistant",
+        "content": "# execute: generateModule: gui.py\n\nfrom modules.loggableMessage import LoggableMessage\nfrom modules.talker_type import TalkerType\nfrom modules.abstract_ui import AbstractUI\n\nimport tkinter as tk\nfrom tkinter import scrolledtext\nfrom tkinter import messagebox\n\nclass GUI(AbstractUI):\n    def __init__(self):\n        self.window = tk.Tk()\n        self.window.title(\"PlayWithGPT GUIモード\")\n        self.window.geometry(\"600x400\")\n        \n        #メインフレーム\n        self.main_frame = tk.Frame(self.window)\n        self.main_frame.pack(expand=True, fill='both')\n        \n        #コマンド用のフレーム\n        self.command_frame = tk.Frame(self.main_frame)\n        self.command_frame.pack(side='bottom')\n        self.command_button_clear = tk.Button(self.command_frame, text ='Clear', command = self.command_clear)\n        self.command_button_clear.pack(side='left')\n        self.command_button_end = tk.Button(self.command_frame, text ='End', command = self.command_end)\n        self.command_button_end.pack(side='right')\n        \n        # ログ表示エリア\n        self.log_frame = tk.Frame(self.main_frame)\n        self.log_frame.pack(expand=True, fill='both')\n        self.log_box = scrolledtext.ScrolledText(self.log_frame, height=20, bg='black', fg='white')\n        self.log_box.pack(expand=True, fill='both')\n        self.log_box.config(state=tk.DISABLED)\n        \n        # ユーザー入力欄\n        self.input_frame = tk.Frame(self.main_frame)\n        self.input_frame.pack(side='bottom', expand=True, fill='both')\n        self.input_box = tk.Entry(self.input_frame)\n        self.input_box.pack(side='left', expand=True, fill='x')\n        self.submit_button = tk.Button(self.input_frame, text='Submit', command=self.submit_input)\n        self.submit_button.pack(side='right')\n        \n        #開始メッセージ\n        self.print_message(LoggableMessage(TalkerType.command, \"=== PlayWithGPT GUIモード ===\"))\n        self.print_manual()\n        \n        self.window.mainloop()\n        \n    \n    def print_manual(self):\n        # ユーザーマニュアルを表示する\n        manual = [\n            \"Clearボタンで文脈をクリアします。\",\n            \"Logボタンで、最新のログを表示します（文脈には含まれません）。\",\n            \"Submitボタンで、ユーザー入力を送信します。\",\n            \"Endボタンで、セッションを終了します。\",\n            \"会話を開始します。\",\n        ]\n\n        self.print_message(LoggableMessage(TalkerType.command, \"\\n\".join(manual)))\n\n    def user_input(self) -> str:\n        input_text = self.input_box.get()\n        self.input_box.delete(0, tk.END)\n        return input_text\n\n    def print_message(self, message: LoggableMessage) -> None:\n        color = \"\"\n        talker = \"\"\n\n        if message.talker == TalkerType.assistant:\n            color = \"yellow\"\n        elif message.talker == TalkerType.command:\n            color = \"cyan\"\n        elif message.talker == TalkerType.user:\n            color = \"white\"\n\n        if message.talker == TalkerType.user:\n            talker = \"You: \"\n        elif message.talker == TalkerType.assistant:\n            talker = \"Bot: \"\n\n        self.log_box.config(state=tk.NORMAL)\n        self.log_box.insert(tk.END, f\"{talker}{message.text}\\n\", color)\n        self.log_box.see(tk.END)\n        self.log_box.config(state=tk.DISABLED)\n\n\n    def command_clear(self):\n        self.print_message(LoggableMessage(TalkerType.command, \"Clearを実行しました。\"))\n        self.clear_context()\n        \n    def command_end(self):\n        self.print_message(LoggableMessage(TalkerType.command, \"Endを実行しました。\"))\n        if messagebox.askokcancel(\"End\", \"セッションを終了しますか？\"):\n            self.window.destroy()\n\n    def submit_input(self):\n        input_text = self.user_input()\n        self.print_message(LoggableMessage(TalkerType.user, input_text))",
+        "datetime": "2023/03/24 00:03:45"
+    },
+    {
+        "role": "command",
+        "content": "=== ChatGPTがモジュール：gui.pyを生成しました ===",
+        "datetime": "2023/03/24 00:03:45"
+    },
+    {
+        "role": "user",
+        "content": "すごい！テストしてみますね。一旦セッションを終了します。ありがとう！",
+        "datetime": "2023/03/24 00:04:30"
+    },
+    {
+        "role": "assistant",
+        "content": "どういたしまして！テストが終わり次第、また何かあれば連絡してください！",
+        "datetime": "2023/03/24 00:04:32"
+    }
+]

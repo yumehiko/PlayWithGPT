@@ -1,4 +1,3 @@
-# cui.py
 from modules.loggableMessage import LoggableMessage
 from modules.talker_type import TalkerType
 from modules.abstract_ui import AbstractUI
@@ -11,7 +10,9 @@ class CUI(AbstractUI):
         colorama.init()
 
     def print_manual(self):
-        # ユーザーマニュアルを表示する
+        """
+        ユーザーに対して、このアプリケーションの使い方を表示する。
+        """
         manual = [
             "=== PlayWithGPT CUIモード ===",
             "Clear、またはcと入力すると、文脈をクリアします。",
@@ -23,7 +24,11 @@ class CUI(AbstractUI):
 
         self.print_message(LoggableMessage(TalkerType.command, "\n".join(manual)))
 
-    def user_input(self) -> str:
+    def request_user_input(self) -> str:
+        """
+        ユーザーからの入力を待機し、入力された文字列を返す。
+        """
+        
         # ユーザーの入力を待つ。
         input_text = input("You: ")
 
@@ -33,6 +38,9 @@ class CUI(AbstractUI):
         return input_text
 
     def print_message(self, message: LoggableMessage) -> None:
+        """
+        メッセージを表示する。
+        """
         color = colorama.Fore.WHITE
         reset = colorama.Style.RESET_ALL
         talker = ""
@@ -54,5 +62,8 @@ class CUI(AbstractUI):
 
 
     def move_cursor_to_init_position(self, length: int) -> None:
+        """
+        ユーザーの入力を消すために、カーソルを一番左に戻す。
+        """
         sys.stdout.write("\033[1A\033[{}D".format(length))
         sys.stdout.flush()
