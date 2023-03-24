@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from modules.loggableMessage import LoggableMessage
+from modules.chat_message import ChatMessage
 from typing import List, Dict
 
 # logData: ログデータを格納するリスト
@@ -14,7 +14,7 @@ def initialize():
     logData.clear()
 
 
-def log(message: LoggableMessage):
+def log(message: ChatMessage):
     """
     指定された話者と文字列からログを記録する。
     """
@@ -26,7 +26,7 @@ def log(message: LoggableMessage):
     # 発言日時を取得
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     # 発言内容を整形
-    formatted_prompt = {"role": message.talker.name,
+    formatted_prompt = {"role": message.sender.type.name,
                         "content": message.text,
                         "datetime": now}
     # logDataに追加

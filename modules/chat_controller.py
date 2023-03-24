@@ -1,21 +1,19 @@
-from modules.gptBot import GPTBot
-from modules.userCommands import UserCommands
-from modules.userCommandType import UserCommandType
-from modules.loggableMessage import LoggableMessage
+from modules.talker import Talker
+from modules.chat_message import ChatMessage
 from modules.talker_type import TalkerType
 from modules import chatLogger
-from modules.aiCommands import AICommands
 from modules.abstract_ui import AbstractUI
 import colorama
 import openai
 import yaml
+import asyncio
 
 class ChatController:
     
     def __init__(self, view: AbstractUI) -> None:
         self.view = view
 
-    def one_on_one_session(self, bot: GPTBot):
+    async def one_on_one_session(self, talkerA: Talker, talkerB: Talker):
         """
         1対1の会話を開始する。
         """
@@ -23,6 +21,9 @@ class ChatController:
         # ログを初期化する
         chatLogger.initialize()
         colorama.init()
+
+        # Systemとして振る舞うTalkerを定義する。
+        self.system = Talker(TalkerType.system, "system")
 
         # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
         with open("key.yaml") as key_file:
@@ -32,10 +33,41 @@ class ChatController:
             if not openai.api_key:
                 raise ValueError("APIKey is not set.")
 
+        self.main_loop = asyncio.create_task(self.session_loop(talkerA, talkerB))
+
+
+    async def session_loop(self, talkerA: Talker, talkerB: Talker) -> None:
+        try:
+            while True:
+                message = await talkerA.generate_message()
+                chatLogger.log(message)
+                talkerB.receive_message(message)
+                message = await talkerB.generate_message()
+                chatLogger.log(message)
+                talkerA.receive_message(message)
+        except asyncio.CancelledError:
+            raise
+        finally:
+            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system))
+            chatLogger.saveJson()
+
+
+    def end_session(self) -> None:
+        """
+        会話を終了する。
+        """
+        self.main_loop.cancel()
+
+    # メッセージにコマンドが含まれているかを判定し、boolで返す
+    def is_command(self, message: str) -> bool:
+        return message.startswith("/")
+
+        """
+        
         userCommands = UserCommands()
         userCommands.print_message.subscribe(self.print_loggable_message)
         userCommands.send_message.subscribe(
-            lambda message: bot.send_message_by("user", message.text))
+            lambda message: bot.receive_message("user", message.text))
 
         aiCommands = AICommands()
         aiCommands.print_message.subscribe(self.print_loggable_message)
@@ -43,7 +75,7 @@ class ChatController:
         self.view.print_manual()
 
         while True:
-            question = self.view.request_user_input()
+            question = await self.view.request_user_input()
             commandType = userCommands.try_run_command(question)
             # 終了コマンドが入力された場合、終了する。
             if commandType == UserCommandType.END:
@@ -56,8 +88,8 @@ class ChatController:
             self.print_loggable_message(LoggableMessage(TalkerType.user, question))
             
             # GPTにメッセージを送り、返答を受け取る。
-            bot.send_message_by("user", question)
-            response = bot.request_response()
+            bot.receive_message("user", question)
+            response = bot.generate_message()
             loggable_response = LoggableMessage(TalkerType.assistant, response)
 
             # 返答を表示・記録する。
@@ -65,14 +97,4 @@ class ChatController:
 
             # 返答がコマンドを含む場合、コマンドを実行する。
             aiCommands.try_execute_command(response)
-
-        self.view.print_message(LoggableMessage(TalkerType.command, "=== ログを記録しました。セッションを終了します ==="))
-        chatLogger.saveJson()
-    
-
-    def print_loggable_message(self, message: LoggableMessage):
         """
-        メッセージを表示し、必要なら記録に残す。
-        """
-        self.view.print_message(message)
-        chatLogger.log(message)

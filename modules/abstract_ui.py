@@ -1,12 +1,19 @@
 
 
 from abc import ABC, abstractmethod
-from modules.loggableMessage import LoggableMessage
+from modules.chat_message import ChatMessage
 
 
 class AbstractUI(ABC):
     def __init__(self):
-        pass
+        self.manual = [
+            "=== PlayWithGPT CUIモード ===",
+            "Clear、またはcと入力すると、文脈をクリアします。",
+            "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
+            "read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。",
+            "End、またはeと入力すると、セッションを終了します。",
+            "=== 会話を開始します ===",
+        ]
     
     @abstractmethod
     def print_manual(self):
@@ -16,14 +23,14 @@ class AbstractUI(ABC):
         pass
 
     @abstractmethod
-    def request_user_input(self) -> str:
+    async def request_user_input(self) -> str:
         """
         ユーザーからの入力を待機し、入力された文字列を返す。
         """
         pass
 
     @abstractmethod
-    def print_message(self, message: LoggableMessage) -> None:
+    def print_message(self, message: ChatMessage) -> None:
         """
         メッセージを表示する。
         """

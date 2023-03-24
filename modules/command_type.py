@@ -1,6 +1,6 @@
 import enum
 
-class UserCommandType(enum.Enum):
+class CommandType(enum.Enum):
     NONE = 0,
     CLEAR = 1, 
     LOG = 2,

@@ -1,69 +1,51 @@
-from modules.loggableMessage import LoggableMessage
+from modules.chat_message import ChatMessage
 from modules.talker_type import TalkerType
 from modules.abstract_ui import AbstractUI
+from aioconsole import ainput
 import colorama
-import sys
 
 
 class CUI(AbstractUI):
     def __init__(self):
+        super().__init__()
         colorama.init()
 
     def print_manual(self):
         """
         ユーザーに対して、このアプリケーションの使い方を表示する。
         """
-        manual = [
-            "=== PlayWithGPT CUIモード ===",
-            "Clear、またはcと入力すると、文脈をクリアします。",
-            "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
-            "read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。",
-            "End、またはeと入力すると、セッションを終了します。",
-            "=== 会話を開始します ===",
-        ]
+        self.print_message(ChatMessage(TalkerType.system, "\n".join(self.manual)))
 
-        self.print_message(LoggableMessage(TalkerType.command, "\n".join(manual)))
-
-    def request_user_input(self) -> str:
+    async def request_user_input(self) -> str:
         """
         ユーザーからの入力を待機し、入力された文字列を返す。
         """
-        
-        # ユーザーの入力を待つ。
-        input_text = input("You: ")
-
-        # ユーザーの入力を、CUI上から消す
-        input_length = len(input_text.encode("utf-8"))
-        self.move_cursor_to_init_position(input_length)
+        input_text = await ainput("You: ")
         return input_text
 
-    def print_message(self, message: LoggableMessage) -> None:
+    def print_message(self, message: ChatMessage) -> None:
         """
         メッセージを表示する。
         """
+
+        # CUIでは、ユーザーの出力は表示済みなので、その場合空行だけ入れて無視する。
+        if message.sender.type == TalkerType.user:
+            print()
+            return
+
         color = colorama.Fore.WHITE
         reset = colorama.Style.RESET_ALL
-        talker = ""
+        talker_mark = ""
 
-        if message.talker == TalkerType.assistant:
+        if message.sender.type == TalkerType.assistant:
             color = colorama.Fore.YELLOW
-        elif message.talker == TalkerType.command:
+        elif message.sender.type == TalkerType.system:
             color = colorama.Fore.CYAN
 
-        if message.talker == TalkerType.user:
-            talker = "You: "
-        elif message.talker == TalkerType.assistant:
-            talker = "Bot: "
+        if message.sender.type == TalkerType.assistant:
+            talker_mark = "Bot: "
 
-        print(color + talker + message.text + reset)
+        print(color + talker_mark + message.text + reset)
 
         # 空行を入れる
         print()
-
-
-    def move_cursor_to_init_position(self, length: int) -> None:
-        """
-        ユーザーの入力を消すために、カーソルを一番左に戻す。
-        """
-        sys.stdout.write("\033[1A\033[{}D".format(length))
-        sys.stdout.flush()
