@@ -1,4 +1,6 @@
+from PyQt6.QtGui import QTextCharFormat, QColor
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QTextEdit, QLineEdit, QWidget
+from PyQt6.QtGui import QTextOption, QTextBlockFormat
 from PyQt6.QtCore import Qt
 from modules.abstract_ui import AbstractUI
 from modules.chat_message import ChatMessage
@@ -15,7 +17,6 @@ class GUI(AbstractUI):
         self.app = QApplication(sys.argv)
         self.main_window = QMainWindow()
         self.user_input_queue: asyncio.Queue[str] = asyncio.Queue()
-        
         def on_return_pressed() -> None:
             if not self.input_line.text():
                 return
@@ -55,13 +56,29 @@ class GUI(AbstractUI):
 
     def print_message(self, message: ChatMessage) -> None:
         if message.sender_info.type == TalkerType.user:
+            color = QColor("white")
+        elif message.sender_info.type == TalkerType.assistant:
+            color = QColor("yellow")
+        else:
+            color = QColor("cyan")
+
+        # Set name color
+        char_format = QTextCharFormat()
+        char_format.setForeground(color)
+        self.message_area.setCurrentCharFormat(char_format)
+
+        # Insert name
+        if message.sender_info.type == TalkerType.user:
             name = "You: "
         elif message.sender_info.type == TalkerType.assistant:
             name = "Bot: "
         else:
             name = "System: "
+        self.message_area.insertPlainText(name)
 
-        self.message_area.append(name + message.text)
+        # Insert message text
+        self.message_area.insertPlainText(message.text + "\n\n")
+
 
     def run(self) -> int:
         self.main_window.show()

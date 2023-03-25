@@ -8,7 +8,7 @@ from modules.talker import Talker
 class AbstractUI(ABC):
     def __init__(self) -> None:
         self.manual = [
-            "=== PlayWithGPT CUIモード ===",
+            "=== PlayWithGPT ===",
             "Clear、またはcと入力すると、文脈をクリアします。",
             "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
             "read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。",
