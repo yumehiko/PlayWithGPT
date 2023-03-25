@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-from modules.command_type import CommandType
 from modules.talker import Talker
 from modules.chat_message import ChatMessage
 from modules.chat_controller import ChatController
+from modules import code_generator
 from modules import log_reader
 from modules import file_finder
 import re
 
 class Command(ABC):
     @abstractmethod
-    def execute(self, message: ChatMessage, system_talker: Talker) -> CommandType:
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         pass
 
     @abstractmethod
@@ -22,9 +22,10 @@ class ShowLatestLogCommand(Command):
         self.chat_controller = chat_controller
 
     def match(self, message_text: str) -> bool:
-        return message_text.lower() in ["log", "l"]
+        keywords = ["log", "l"]
+        return message_text.lower() in keywords
 
-    def execute(self, message: ChatMessage, system_talker: Talker) -> CommandType:
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         message = ChatMessage("=== 最新のログを表示します ===", system_talker.sender_info, False)
         self.chat_controller.print_message(message)
         log = log_reader.ReadLatestJson()
@@ -33,8 +34,6 @@ class ShowLatestLogCommand(Command):
         message = ChatMessage("=== 最新のログを表示しました（Log上では省略） ===", system_talker.sender_info)
         self.chat_controller.print_message(message)
         self.chat_controller.skip = True
-        return CommandType.LOG
-
 
 
 class ReadCommand(Command):
@@ -44,7 +43,7 @@ class ReadCommand(Command):
     def match(self, message_text: str) -> bool:
         return bool(re.match(r"^(Read:|read: ).*\.py$", message_text))
 
-    def execute(self, message: ChatMessage, system_talker: Talker) -> CommandType:
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         command = message.text[6:]
         file_name = command.split(".py")[0] + ".py"
         source_code = file_finder.findSourceCode(file_name)
@@ -53,7 +52,6 @@ class ReadCommand(Command):
         message = ChatMessage("=== " + file_name + "のソースコードを読み上げました ===", system_talker.sender_info)
         self.chat_controller.print_message(message)
         self.chat_controller.skip = True
-        return CommandType.READ
 
 
 class ClearCommand(Command):
@@ -61,12 +59,12 @@ class ClearCommand(Command):
         self.chat_controller = chat_controller
         
     def match(self, message_text: str) -> bool:
-        return message_text.lower() in ["clear", "c"]
+        keywords = ["clear", "c"]
+        return message_text.lower() in keywords
 
-    def execute(self, message: ChatMessage, system_talker: Talker) -> CommandType:
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         self.chat_controller.clear_context()
         self.chat_controller.skip = True
-        return CommandType.CLEAR
 
 
 class EndCommand(Command):
@@ -74,9 +72,21 @@ class EndCommand(Command):
         self.chat_controller = chat_controller
         
     def match(self, message_text: str) -> bool:
-        return message_text.lower() in ["end", "e"]
+        keywords = ["end", "e"]
+        return message_text.lower() in keywords
 
-    def execute(self, message: ChatMessage, system_talker: Talker) -> CommandType:
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         self.chat_controller.end_session()
         self.chat_controller.skip = True
-        return CommandType.END
+    
+class GenerateModuleCommand(Command):
+    def __init__(self, chat_controller: ChatController):
+        self.chat_controller = chat_controller
+    
+    def match(self, message_text: str) -> bool:
+        return "execute: generateModule: " in message_text
+
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
+        file_name = code_generator.write_py_file(message.text)
+        message = ChatMessage("=== " + file_name + "を生成しました ===", system_talker.sender_info)
+        self.chat_controller.print_message(message)
