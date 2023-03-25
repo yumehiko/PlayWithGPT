@@ -7,14 +7,14 @@ from typing import List, Dict
 logData: List[Dict[str, str]] = []
 
 
-def initialize():
+def initialize() -> None:
     """
     ログデータを初期化する
     """
     logData.clear()
 
 
-def log(message: ChatMessage):
+def log(message: ChatMessage) -> None:
     """
     指定された話者と文字列からログを記録する。
     """
@@ -26,14 +26,14 @@ def log(message: ChatMessage):
     # 発言日時を取得
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     # 発言内容を整形
-    formatted_prompt = {"role": message.sender.type.name,
+    formatted_prompt = {"role": message.sender_info.type.name,
                         "content": message.text,
                         "datetime": now}
     # logDataに追加
     logData.append(formatted_prompt)
 
 
-def saveJson():
+def saveJson() -> None:
     """
     これまでに記録したログデータをjson形式で保存する
     """

@@ -2,10 +2,11 @@
 
 from abc import ABC, abstractmethod
 from modules.chat_message import ChatMessage
+from modules.talker import Talker
 
 
 class AbstractUI(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         self.manual = [
             "=== PlayWithGPT CUIモード ===",
             "Clear、またはcと入力すると、文脈をクリアします。",
@@ -16,7 +17,7 @@ class AbstractUI(ABC):
         ]
     
     @abstractmethod
-    def print_manual(self):
+    def print_manual(self, system_talker: Talker) -> None:
         """
         ユーザーに対して、このアプリケーションの使い方を表示する。
         """

@@ -1,6 +1,6 @@
 
 
-def write_py_file(chat_text):
+def write_py_file(chat_text: str) -> str:
     """
     チャットの発言を元に.pyファイルを書き出し、そのファイル名を返す。
     chat_textには、ファイル名から始まる発言が含まれている。
@@ -27,17 +27,17 @@ def write_py_file(chat_text):
     return file_name
 
 
-def split_by_pythoncodeBlock(chat_text):
+def split_by_pythoncodeBlock(chat_text: str) -> str:
     source_code = chat_text.split("```python")[1]
     source_code = source_code.split("```")[0]
     return source_code
 
 
-def split_by_codeBlock(chat_text):
+def split_by_codeBlock(chat_text: str) -> str:
     source_code = chat_text.split("```")[1]
     return source_code
 
 
-def split_by_fileName(chat_text):
+def split_by_fileName(chat_text: str) -> str:
     source_code = chat_text.split(".py")[1]
     return source_code

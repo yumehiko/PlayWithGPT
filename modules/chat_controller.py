@@ -1,6 +1,5 @@
 from modules.talker import Talker
-from modules.chat_message import ChatMessage
-from modules.talker_type import TalkerType
+from modules.chat_message import ChatMessage, ChatMessageSubject
 from modules import chatLogger
 from modules.abstract_ui import AbstractUI
 import colorama
@@ -9,21 +8,23 @@ import yaml
 import asyncio
 
 class ChatController:
-    
-    def __init__(self, view: AbstractUI) -> None:
-        self.view = view
 
-    async def one_on_one_session(self, talkerA: Talker, talkerB: Talker):
+    def __init__(self, view: AbstractUI, system_talker:Talker) -> None:
+        self.view = view
+        self.system_talker = system_talker
+        self.message_subject = ChatMessageSubject()
+        self.skip = False
+        self.end = False
+
+    
+    async def start_session(self, partticipiant: list[Talker]) -> None:
         """
-        1対1の会話を開始する。
+        会話を開始する。
         """
 
         # ログを初期化する
         chatLogger.initialize()
-        colorama.init()
-
-        # Systemとして振る舞うTalkerを定義する。
-        self.system = Talker(TalkerType.system, "system")
+        self.participants = partticipiant
 
         # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
         with open("key.yaml") as key_file:
@@ -32,69 +33,76 @@ class ChatController:
             # APIキーが設定できたか確認し、設定されていない場合は例外を返す
             if not openai.api_key:
                 raise ValueError("APIKey is not set.")
-
-        self.main_loop = asyncio.create_task(self.session_loop(talkerA, talkerB))
-
-
-    async def session_loop(self, talkerA: Talker, talkerB: Talker) -> None:
+            
+        self.main_loop = asyncio.create_task(self.session_loop())
         try:
-            while True:
-                message = await talkerA.generate_message()
-                chatLogger.log(message)
-                talkerB.receive_message(message)
-                message = await talkerB.generate_message()
-                chatLogger.log(message)
-                talkerA.receive_message(message)
+            await self.main_loop
         except asyncio.CancelledError:
-            raise
+            pass
         finally:
-            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system))
+            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
             chatLogger.saveJson()
+            
+    
 
+
+    async def session_loop(self) -> None:
+        while not self.end:
+            try:
+                self.skip = False
+                await self.chat()
+            except asyncio.CancelledError:
+                raise
+
+    async def chat(self) -> None:
+        """
+        参加者全員が会話を1周行う。
+        """
+        for participant in self.participants:
+            try:
+                message = await participant.generate_message()
+                self.message_subject.on_next(message)
+                if self.skip:
+                    return
+                self.send_to_all(message)
+                self.print_message(message)
+            except asyncio.CancelledError:
+                raise
+
+    def send_to_all(self, message: ChatMessage) -> None:
+        """
+        会話に参加している全ての話者にメッセージを送信する。
+        """
+        for participant in self.participants:
+            self.send_to(message, participant)
+
+    def send_to(self, message: ChatMessage, target: Talker) -> None:
+        """
+        指定した話者にメッセージを送信する。
+        """
+        if target.sender_info != message.sender_info:
+            target.receive_message(message)
+
+    def print_message(self, message: ChatMessage) -> None:
+        """
+        メッセージをチャット欄に表示する。
+        """
+        self.view.print_message(message)
+
+        # logすべきなら、logする。
+        if message.should_log:
+            chatLogger.log(message)
+
+    def clear_context(self) -> None:
+        """
+        会話のコンテキストをクリアする。
+        """
+        for participant in self.participants:
+            participant.clear_context()
+        self.view.print_message(ChatMessage("=== コンテキストをクリアしました ===", self.system_talker.sender_info))
 
     def end_session(self) -> None:
         """
         会話を終了する。
         """
         self.main_loop.cancel()
-
-    # メッセージにコマンドが含まれているかを判定し、boolで返す
-    def is_command(self, message: str) -> bool:
-        return message.startswith("/")
-
-        """
-        
-        userCommands = UserCommands()
-        userCommands.print_message.subscribe(self.print_loggable_message)
-        userCommands.send_message.subscribe(
-            lambda message: bot.receive_message("user", message.text))
-
-        aiCommands = AICommands()
-        aiCommands.print_message.subscribe(self.print_loggable_message)
-
-        self.view.print_manual()
-
-        while True:
-            question = await self.view.request_user_input()
-            commandType = userCommands.try_run_command(question)
-            # 終了コマンドが入力された場合、終了する。
-            if commandType == UserCommandType.END:
-                break
-            # その他のコマンドが入力された場合、ユーザーの入力待機へ戻る。
-            if commandType != UserCommandType.NONE:
-                continue
-
-            # コマンド入力がなかった場合、通常の会話として記録し、処理を進める。
-            self.print_loggable_message(LoggableMessage(TalkerType.user, question))
-            
-            # GPTにメッセージを送り、返答を受け取る。
-            bot.receive_message("user", question)
-            response = bot.generate_message()
-            loggable_response = LoggableMessage(TalkerType.assistant, response)
-
-            # 返答を表示・記録する。
-            self.print_loggable_message(loggable_response)
-
-            # 返答がコマンドを含む場合、コマンドを実行する。
-            aiCommands.try_execute_command(response)
-        """

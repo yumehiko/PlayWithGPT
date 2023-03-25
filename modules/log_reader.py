@@ -2,7 +2,7 @@ import os
 import glob
 import json
 
-def ReadLatestJson():
+def ReadLatestJson() -> str:
     # フォルダ内の全てのファイルパスを取得し、新しいもの順にソートして最も新しいファイルを取得
     all_files = glob.glob("log/*.json")
     latest_file = max(all_files, key=os.path.getctime)
