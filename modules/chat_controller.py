@@ -33,7 +33,8 @@ class ChatController:
             # APIキーが設定できたか確認し、設定されていない場合は例外を返す
             if not openai.api_key:
                 raise ValueError("APIKey is not set.")
-            
+        
+        self.view.print_manual(self.system_talker)
         self.main_loop = asyncio.create_task(self.session_loop())
         try:
             await self.main_loop

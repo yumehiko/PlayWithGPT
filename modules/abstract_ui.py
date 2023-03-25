@@ -36,3 +36,7 @@ class AbstractUI(ABC):
         メッセージを表示する。
         """
         pass
+
+    @abstractmethod
+    def run(self) -> int:
+        pass
