@@ -1,14 +1,41 @@
 from PyQt6.QtGui import QTextCharFormat, QColor
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QTextEdit, QLineEdit, QWidget
-from PyQt6.QtGui import QTextOption, QTextBlockFormat
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QTextEdit, QLineEdit, QWidget, QSizePolicy
+from PyQt6.QtGui import QTextOption, QTextBlockFormat, QTextCursor, QKeyEvent
+from PyQt6.QtCore import Qt, QObject, pyqtSignal, QEventLoop, QEvent
 from modules.abstract_ui import AbstractUI
 from modules.chat_message import ChatMessage
 from modules.talker import Talker
 from modules.talker_type import TalkerType
-from typing import Callable
+from typing import Optional, Callable
 import sys
 import asyncio
+
+class InputArea(QTextEdit):
+    def __init__(self, user_input_queue: asyncio.Queue[str], parent: Optional[QWidget] = None) -> None:
+        super().__init__(parent)
+        self.user_input_queue = user_input_queue
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Return:
+            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                self.textCursor().insertText("\n")
+            else:
+                self.send_message()
+        else:
+            super().keyPressEvent(event)
+
+    def send_message(self) -> None:
+        text = self.toPlainText()
+        if text:
+            self.clear()
+            asyncio.create_task(self.user_input_queue.put(text))
+
+    def adjust_height(self) -> None:
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.setTextCursor(cursor)
+        height = self.document().size().height()
+        self.setFixedHeight(int(min(height, 200)))
 
 
 class GUI(AbstractUI):
@@ -17,15 +44,6 @@ class GUI(AbstractUI):
         self.app = QApplication(sys.argv)
         self.main_window = QMainWindow()
         self.user_input_queue: asyncio.Queue[str] = asyncio.Queue()
-        def on_return_pressed() -> None:
-            if not self.input_line.text():
-                return
-            text = self.input_line.text()
-            self.input_line.clear()
-            asyncio.create_task(self.user_input_queue.put(text))
-
-        self.on_return_pressed = on_return_pressed
-
         self.init_ui()
 
     def init_ui(self) -> None:
@@ -42,11 +60,17 @@ class GUI(AbstractUI):
         self.message_area.setReadOnly(True)
         layout.addWidget(self.message_area)
 
-        self.input_line = QLineEdit(central_widget)
-        self.input_line.setPlaceholderText("Type your message here...")
-        layout.addWidget(self.input_line)
+        self.input_area = InputArea(self.user_input_queue, self.main_window)
+        self.input_area.setPlaceholderText("メッセージを入力：Shift+Enterで改行、Enterで送信")
+        self.input_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.input_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.input_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.input_area.setFixedHeight(self.input_area.fontMetrics().height() + 10)
 
-        self.input_line.returnPressed.connect(self.on_return_pressed)
+        layout.addWidget(self.input_area)
+
+        # テキストが入力されたら、必要に応じて高さを調整する。
+        self.input_area.textChanged.connect(self.input_area.adjust_height)
 
     def print_manual(self, system_talker: Talker) -> None:
         self.print_message(ChatMessage("\n".join(self.manual), system_talker.sender_info, False))
@@ -78,7 +102,6 @@ class GUI(AbstractUI):
 
         # Insert message text
         self.message_area.insertPlainText(message.text + "\n\n")
-
 
     def run(self) -> int:
         self.main_window.show()
