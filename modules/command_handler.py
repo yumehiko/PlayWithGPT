@@ -1,7 +1,7 @@
 from modules.command import Command
 from modules.chat_message import ChatMessage
 from modules.chat_controller import ChatController
-from modules.command import EndCommand, ClearCommand, ReadCommand, ShowLatestLogCommand, GenerateModuleCommand
+from modules.command import *
 from modules.talker import Talker
 from typing import Dict
 
@@ -14,7 +14,8 @@ class CommandHandler:
             ClearCommand(chat_controller),
             ReadCommand(chat_controller),
             ShowLatestLogCommand(chat_controller),
-            GenerateModuleCommand(chat_controller)
+            GenerateModuleCommand(chat_controller),
+            WritePersonaCommand(chat_controller),
         ]
         chat_controller.message_subject.subscribe(self.handle)
 
