@@ -46,6 +46,9 @@ class GUI(AbstractUI):
         self.user_input_queue: asyncio.Queue[str] = asyncio.Queue()
         self.init_ui()
 
+    def get_app_instance(self) -> QApplication:
+        return self.app
+
     def init_ui(self) -> None:
         # メインウィンドウの設定
         self.main_window.setWindowTitle("PlayWithGPT GUI Mode")
@@ -79,12 +82,12 @@ class GUI(AbstractUI):
         return await self.user_input_queue.get()
 
     def print_message(self, message: ChatMessage) -> None:
-        if message.sender_info.type == TalkerType.user:
-            color = QColor("white")
-        elif message.sender_info.type == TalkerType.assistant:
+        if message.sender_info.type == TalkerType.assistant:
             color = QColor("yellow")
-        else:
+        elif message.sender_info.type == TalkerType.system:
             color = QColor("cyan")
+        else :
+            color = QApplication.palette().text().color()
 
         # Set name color
         char_format = QTextCharFormat()
@@ -97,12 +100,8 @@ class GUI(AbstractUI):
         elif message.sender_info.type == TalkerType.assistant:
             name = "Bot: "
         else:
-            name = "System: "
+            name = ""
         self.message_area.insertPlainText(name)
 
         # Insert message text
         self.message_area.insertPlainText(message.text + "\n\n")
-
-    def run(self) -> int:
-        self.main_window.show()
-        return self.app.exec()

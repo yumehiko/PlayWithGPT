@@ -50,6 +50,3 @@ class CUI(AbstractUI):
 
         # 空行を入れる
         print()
-
-    def run(self) -> int:
-        return 0
