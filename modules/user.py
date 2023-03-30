@@ -14,8 +14,8 @@ class User(Talker):
         self.ui = ui
 
     @property
-    def talker_type(self) -> TalkerType:
-        return self._talker_type
+    def type(self) -> TalkerType:
+        return self._type
 
     def receive_message(self, message: ChatMessage) -> None:
         """

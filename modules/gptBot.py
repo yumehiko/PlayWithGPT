@@ -18,14 +18,12 @@ class GPTBot(Talker):
         with open("personas/" + persona_name + ".json", encoding="utf-8") as persona_file:
             persona = json.load(persona_file)
             self.model_id = persona["model_id"]
-            self.personality = persona["personality"]
+            self.personality = {"role": system_talker.type.name, "content": persona["personality"]}
             self.token_limit = int(persona["token_limit"])
             super().__init__(TalkerType.assistant, persona["name"])
         
         # 会話の文脈を初期化する
         self.context: List[Dict[str, str]] = []
-
-        self.receive_message(ChatMessage(self.personality, system_talker.sender_info, False))
 
 
     def receive_message(self, message:ChatMessage) -> None:
@@ -71,22 +69,19 @@ class GPTBot(Talker):
             messages=self.context,
         )
         
-        # contextの0番目以外を削除
-        self.context = self.context[:1]
-
         # 要約を整形する。
         summary = summary_data["choices"][0]["message"]["content"]
         memorable_response = {"role": "assistant", "content": summary}
 
-        # 文脈を追記する
+        # 文脈をクリアし、要約を追記する
+        self.clear_context()
         self.context.append(memorable_response)
         print("要約化しました。")
 
 
-        
-    
     def clear_context(self) -> None:
         """
         文脈をクリアする。
         """
         self.context = []
+        self.context.append(self.personality)

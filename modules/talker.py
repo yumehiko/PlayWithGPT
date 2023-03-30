@@ -12,13 +12,13 @@ class Talker():
 
     def __init__(self, talker_type: TalkerType = TalkerType.none, persona_name: str = "") -> None:
         self._text_subject = ChatMessageSubject()
-        self._talker_type = talker_type
+        self._type = talker_type
         self.name = persona_name
-        self._sender_info = SenderInfo(self.name, self._talker_type)
+        self._sender_info = SenderInfo(self.name, self._type)
 
     @property
-    def talker_type(self) -> TalkerType:
-        return self._talker_type
+    def type(self) -> TalkerType:
+        return self._type
 
     @property
     def message_subject(self) -> ChatMessageSubject:
