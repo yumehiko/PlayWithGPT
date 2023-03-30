@@ -82,6 +82,11 @@ class GUI(AbstractUI):
         return await self.user_input_queue.get()
 
     def print_message(self, message: ChatMessage) -> None:
+        # カーソルを末尾へ移動する。
+        cursor = self.message_area.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.message_area.setTextCursor(cursor)
+
         if message.sender_info.type == TalkerType.assistant:
             color = QColor("yellow")
         elif message.sender_info.type == TalkerType.system:
