@@ -3,7 +3,7 @@ from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage, ChatMessageSubject
 from modules import chatLogger
 from modules.abstract_ui import AbstractUI
-from modules.translater import Translater, GptTranslater
+from modules.translater import Translater, GptTranslater, DeepLTranslater
 import openai
 import yaml
 import asyncio
@@ -14,7 +14,6 @@ import asyncio
 
 
 class ChatController:
-
     def __init__(self, view: AbstractUI, system_talker:Talker) -> None:
         self.view = view
         self.system_talker = system_talker
@@ -53,7 +52,6 @@ class ChatController:
     async def start_session_with_translater(self, partticipiant: list[Talker]) -> None:
 
         # 翻訳者を生成する。
-        translater = GptTranslater(self.system_talker)
 
         # ログを初期化する
         chatLogger.initialize()
@@ -66,7 +64,10 @@ class ChatController:
             # APIキーが設定できたか確認し、設定されていない場合は例外を返す
             if not openai.api_key:
                 raise ValueError("APIKey is not set.")
-            
+            deepl_api_key = config["deepl"]["api_key"]
+        
+        translater: Translater = self.pick_translater(deepl_api_key)
+        
         self.view.print_manual(self.system_talker)
         self.main_loop = asyncio.create_task(self.session_loop_with_translater(translater))
         try:
@@ -76,6 +77,12 @@ class ChatController:
         finally:
             self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
             chatLogger.saveJson()
+
+    def pick_translater(self, api_key: str) -> Translater:
+        if api_key:
+            return DeepLTranslater(api_key)
+        else:
+            return GptTranslater(self.system_talker)
 
     async def session_loop(self) -> None:
         while not self.end:

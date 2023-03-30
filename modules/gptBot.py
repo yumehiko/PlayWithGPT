@@ -24,6 +24,7 @@ class GPTBot(Talker):
         
         # 会話の文脈を初期化する
         self.context: List[Dict[str, str]] = []
+        self.context.append(self.personality)
 
 
     def receive_message(self, message:ChatMessage) -> None:
