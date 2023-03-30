@@ -3,11 +3,15 @@ from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage, ChatMessageSubject
 from modules import chatLogger
 from modules.abstract_ui import AbstractUI
-from modules.interpreter import Interpreter
-import colorama
+from modules.translater import Translater, GptTranslater
 import openai
 import yaml
 import asyncio
+
+# TODO: モードの組み合わせを実現する
+# Interpreter_Mode: None, GPT-3.5-Turbo, DeepL
+# Persona: string
+
 
 class ChatController:
 
@@ -46,10 +50,10 @@ class ChatController:
             self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
             chatLogger.saveJson()
             
-    async def start_session_with_interpreter(self, partticipiant: list[Talker]) -> None:
+    async def start_session_with_translater(self, partticipiant: list[Talker]) -> None:
 
         # 翻訳者を生成する。
-        interpreter = Interpreter(self.system_talker)
+        translater = GptTranslater(self.system_talker)
 
         # ログを初期化する
         chatLogger.initialize()
@@ -64,7 +68,7 @@ class ChatController:
                 raise ValueError("APIKey is not set.")
             
         self.view.print_manual(self.system_talker)
-        self.main_loop = asyncio.create_task(self.session_loop_with_interpreter(interpreter))
+        self.main_loop = asyncio.create_task(self.session_loop_with_translater(translater))
         try:
             await self.main_loop
         except asyncio.CancelledError:
@@ -80,10 +84,10 @@ class ChatController:
             except asyncio.CancelledError:
                 raise
 
-    async def session_loop_with_interpreter(self, interpreter: Interpreter) -> None:
+    async def session_loop_with_translater(self, interpreter: Translater) -> None:
         while not self.end:
             try:
-                await self.chat_with_interpreter(interpreter)
+                await self.chat_with_translater(interpreter)
             except asyncio.CancelledError:
                 raise
 
@@ -103,7 +107,7 @@ class ChatController:
             except asyncio.CancelledError:
                 raise
 
-    async def chat_with_interpreter(self, interpreter: Interpreter) -> None:
+    async def chat_with_translater(self, translater: Translater) -> None:
         """
         参加者全員が会話を1周行う。
         ただし、すべての発言は翻訳者によって翻訳される。
@@ -115,14 +119,13 @@ class ChatController:
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
-                interpreter.receive_message(message)
-                interpreted_message = await interpreter.generate_message()
-                self.send_to_all(interpreted_message)
+                translated_message = await translater.translate(message)
+                self.send_to_all(translated_message)
                 # 話者がユーザーの場合のみ、翻訳前の発言を表示する。
                 if message.sender_info.type == TalkerType.user:
                     self.print_message(message)
                 else:
-                    self.print_message(interpreted_message)
+                    self.print_message(translated_message)
             except asyncio.CancelledError:
                 raise
 

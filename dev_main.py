@@ -36,7 +36,7 @@ async def main_loop() -> None:
 
     participants: list[Talker] = [user, bot]
     # 会話ロジックループを開始。
-    await controller.start_session_with_interpreter(participants)
+    await controller.start_session_with_translater(participants)
 
 if __name__ == "__main__":
     # GUIモードのインターフェースを生成する。
