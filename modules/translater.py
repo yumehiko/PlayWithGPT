@@ -7,6 +7,18 @@ import openai
 import json
 import yaml
 from abc import ABC, abstractmethod
+from enum import Enum
+
+
+
+class TranslateType(Enum):
+    """
+    翻訳モードの種類。
+    """
+    none = 0
+    deepl = 1
+    chatgpt = 2
+
 
 
 class Translater(ABC):

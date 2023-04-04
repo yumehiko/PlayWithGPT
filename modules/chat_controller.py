@@ -3,47 +3,9 @@ from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage, ChatMessageSubject
 from modules import chatLogger
 from modules.abstract_ui import AbstractUI
-from modules.translater import Translater, GptTranslater, DeepLTranslater
-from modules.translate_mode import TranslateMode
+from modules.session import Session
+from modules.translater import TranslateType
 import asyncio
-
-# TODO: モードの組み合わせを実現する
-# Interpreter_Mode: None, GPT-3.5-Turbo, DeepL
-# Persona: string
-
-class Session:
-    def __init__(self, participiants: list[Talker], translate_mode: TranslateMode) -> None:
-        self.participants = participiants
-        self.translate_mode = translate_mode
-    
-
-    def set_translater(self, translater: Translater) -> None:
-        self.translater = translater
-
-
-    def send_to(self, message: ChatMessage, target: Talker) -> None:
-        """
-        指定した話者にメッセージを送信する。
-        """
-        if target.sender_info != message.sender_info:
-            target.receive_message(message)
-
-
-    def send_to_all(self, message: ChatMessage) -> None:
-        """
-        会話に参加している全ての話者にメッセージを送信する。
-        """
-        for participant in self.participants:
-            self.send_to(message, participant)
-    
-
-    def clear_context(self) -> None:
-        """
-        全員の会話のコンテキストをクリアする。
-        """
-        for participant in self.participants:
-            participant.clear_context()
-
 
 
 class ChatController:
@@ -61,7 +23,7 @@ class ChatController:
         self.session = session
         chatLogger.initialize()
         self.view.print_manual(self.system_talker)
-        if(session.translate_mode != TranslateMode.none):
+        if(session.translate_mode != TranslateType.none):
             self.main_loop = asyncio.create_task(self.session_loop_with_translater(session))
         else:
             self.main_loop = asyncio.create_task(self.session_loop(session))

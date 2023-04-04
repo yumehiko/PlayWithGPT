@@ -3,23 +3,15 @@ from modules.talker import Talker
 from modules.chat_message import ChatMessage
 from modules.user import User
 from modules.gptBot import GPTBot
-from modules.chat_controller import ChatController, Session
-from modules.translater import Translater, GptTranslater, DeepLTranslater
-from modules.translate_mode import TranslateMode
+from modules.chat_controller import ChatController
+from modules.session import Session, SessionType
+from modules.translater import Translater, GptTranslater, DeepLTranslater, TranslateType
 import openai
 import yaml
 from enum import Enum
 import os
 import asyncio
 
-
-
-
-class SessionType(Enum):
-    none = 0
-    one_on_one = 1
-    bot_on_bot = 2
-    cancel = 3
 
 
 class AppInitializer:
@@ -44,7 +36,7 @@ class AppInitializer:
     async def ask_app_mode(self) -> Session:
         session_type = await self.ask_session_type()
         participient: list[Talker] = []
-        translate_mode = TranslateMode.none
+        translate_mode = TranslateType.none
         if session_type == SessionType.cancel:
             raise Exception("No Session")
         elif session_type == SessionType.one_on_one:
@@ -58,9 +50,9 @@ class AppInitializer:
             bot2 = await self.ask_bot_select()
             participient = [bot1, bot2]
         
-        session = Session(participient, translate_mode)
+        session = Session(participient, session_type, translate_mode)
 
-        if translate_mode != TranslateMode.none:
+        if translate_mode != TranslateType.none:
             translater = self.pick_translater(translate_mode)
             session.set_translater(translater)
 
@@ -111,7 +103,7 @@ class AppInitializer:
         return bot
     
 
-    async def ask_translate_mode(self) -> TranslateMode:
+    async def ask_translate_mode(self) -> TranslateType:
         text = "翻訳モードを選択してください：\n"
         text += "    (n) 翻訳なし\n"
         text += "    (d) DeepL翻訳\n"
@@ -128,25 +120,25 @@ class AppInitializer:
         if input == "d": 
             message = ChatMessage("DeepL翻訳を選択しました。", self.system_talker.sender_info, False)
             self.view.print_message(message)
-            return TranslateMode.deepl
+            return TranslateType.deepl
         elif input == "g":
             message = ChatMessage("ChatGPT翻訳を選択しました。", self.system_talker.sender_info, False)
             self.view.print_message(message)
-            return TranslateMode.chatgpt
+            return TranslateType.chatgpt
         else:
             message = ChatMessage("翻訳なしを選択しました。", self.system_talker.sender_info, False)
             self.view.print_message(message)
-            return TranslateMode.none
+            return TranslateType.none
     
 
-    def pick_translater(self, translate_mode: TranslateMode) -> Translater:
-        if translate_mode == TranslateMode.deepl and self.deepl_api_key:
+    def pick_translater(self, translate_mode: TranslateType) -> Translater:
+        if translate_mode == TranslateType.deepl and self.deepl_api_key:
             return DeepLTranslater(self.deepl_api_key)
-        elif translate_mode == TranslateMode.deepl and not self.deepl_api_key:
+        elif translate_mode == TranslateType.deepl and not self.deepl_api_key:
             message = ChatMessage("DeepL APIキーが設定されていません。ChatGPT翻訳で実行します。", self.system_talker.sender_info, False)
             self.view.print_message(message)
             return GptTranslater(self.system_talker)
-        elif translate_mode == TranslateMode.chatgpt:
+        elif translate_mode == TranslateType.chatgpt:
             return GptTranslater(self.system_talker)
         else:
             raise ValueError("未定義の翻訳者")
