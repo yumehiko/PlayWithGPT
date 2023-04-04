@@ -4,13 +4,46 @@ from modules.chat_message import ChatMessage, ChatMessageSubject
 from modules import chatLogger
 from modules.abstract_ui import AbstractUI
 from modules.translater import Translater, GptTranslater, DeepLTranslater
-import openai
-import yaml
+from modules.translate_mode import TranslateMode
 import asyncio
 
 # TODO: モードの組み合わせを実現する
 # Interpreter_Mode: None, GPT-3.5-Turbo, DeepL
 # Persona: string
+
+class Session:
+    def __init__(self, participiants: list[Talker], translate_mode: TranslateMode) -> None:
+        self.participants = participiants
+        self.translate_mode = translate_mode
+    
+
+    def set_translater(self, translater: Translater) -> None:
+        self.translater = translater
+
+
+    def send_to(self, message: ChatMessage, target: Talker) -> None:
+        """
+        指定した話者にメッセージを送信する。
+        """
+        if target.sender_info != message.sender_info:
+            target.receive_message(message)
+
+
+    def send_to_all(self, message: ChatMessage) -> None:
+        """
+        会話に参加している全ての話者にメッセージを送信する。
+        """
+        for participant in self.participants:
+            self.send_to(message, participant)
+    
+
+    def clear_context(self) -> None:
+        """
+        全員の会話のコンテキストをクリアする。
+        """
+        for participant in self.participants:
+            participant.clear_context()
+
 
 
 class ChatController:
@@ -21,113 +54,74 @@ class ChatController:
         self.skip = False
         self.end = False
 
-    
-    async def start_session(self, partticipiant: list[Talker]) -> None:
+    async def begin_session(self, session: Session) -> None:
         """
         会話を開始する。
         """
-
-        # ログを初期化する
+        self.session = session
         chatLogger.initialize()
-        self.participants = partticipiant
-
-        # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
-        with open("key.yaml") as key_file:
-            config = yaml.safe_load(key_file)
-            openai.api_key = config["openai"]["api_key"]
-            # APIキーが設定できたか確認し、設定されていない場合は例外を返す
-            if not openai.api_key:
-                raise ValueError("APIKey is not set.")
-        
         self.view.print_manual(self.system_talker)
-        self.main_loop = asyncio.create_task(self.session_loop())
-        try:
-            await self.main_loop
-        except asyncio.CancelledError:
-            pass
-        finally:
-            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
-            chatLogger.saveJson()
-            
-    async def start_session_with_translater(self, partticipiant: list[Talker]) -> None:
-
-        # 翻訳者を生成する。
-
-        # ログを初期化する
-        chatLogger.initialize()
-        self.participants = partticipiant
-
-        # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
-        with open("key.yaml") as key_file:
-            config = yaml.safe_load(key_file)
-            openai.api_key = config["openai"]["api_key"]
-            # APIキーが設定できたか確認し、設定されていない場合は例外を返す
-            if not openai.api_key:
-                raise ValueError("APIKey is not set.")
-            deepl_api_key = config["deepl"]["api_key"]
-        
-        translater: Translater = self.pick_translater(deepl_api_key)
-        
-        self.view.print_manual(self.system_talker)
-        self.main_loop = asyncio.create_task(self.session_loop_with_translater(translater))
-        try:
-            await self.main_loop
-        except asyncio.CancelledError:
-            pass
-        finally:
-            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
-            chatLogger.saveJson()
-
-    def pick_translater(self, api_key: str) -> Translater:
-        if api_key:
-            return DeepLTranslater(api_key)
+        if(session.translate_mode != TranslateMode.none):
+            self.main_loop = asyncio.create_task(self.session_loop_with_translater(session))
         else:
-            return GptTranslater(self.system_talker)
+            self.main_loop = asyncio.create_task(self.session_loop(session))
+        
+        try:
+            await self.main_loop
+        except asyncio.CancelledError:
+            pass
+        finally:
+            self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
+            chatLogger.saveJson()
 
-    async def session_loop(self) -> None:
+
+    async def session_loop(self, session: Session) -> None:
         while not self.end:
             try:
-                await self.chat()
+                await self.chat(session)
             except asyncio.CancelledError:
                 raise
 
-    async def session_loop_with_translater(self, interpreter: Translater) -> None:
+
+    async def session_loop_with_translater(self, session: Session) -> None:
         while not self.end:
             try:
-                await self.chat_with_translater(interpreter)
+                await self.chat_with_translater(session)
             except asyncio.CancelledError:
                 raise
 
-    async def chat(self) -> None:
+
+    async def chat(self, session: Session) -> None:
         """
         参加者全員が会話を1周行う。
         """
-        for participant in self.participants:
+        for participant in session.participants:
             self.skip = False
             try:
                 message = await participant.generate_message()
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
-                self.send_to_all(message)
+                session.send_to_all(message)
                 self.print_message(message)
             except asyncio.CancelledError:
                 raise
 
-    async def chat_with_translater(self, translater: Translater) -> None:
+
+    async def chat_with_translater(self, session: Session) -> None:
         """
         参加者全員が会話を1周行う。
         ただし、すべての発言は翻訳者によって翻訳される。
         """
-        for participant in self.participants:
+        for participant in session.participants:
             self.skip = False
             try:
                 message = await participant.generate_message()
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
-                translated_message = await translater.translate(message)
-                self.send_to_all(translated_message)
+                translated_message = await session.translater.translate(message)
+                session.send_to_all(translated_message)
                 # 話者がユーザーの場合のみ、翻訳前の発言を表示する。
                 if message.sender_info.type == TalkerType.user:
                     self.print_message(message)
@@ -136,19 +130,6 @@ class ChatController:
             except asyncio.CancelledError:
                 raise
 
-    def send_to_all(self, message: ChatMessage) -> None:
-        """
-        会話に参加している全ての話者にメッセージを送信する。
-        """
-        for participant in self.participants:
-            self.send_to(message, participant)
-
-    def send_to(self, message: ChatMessage, target: Talker) -> None:
-        """
-        指定した話者にメッセージを送信する。
-        """
-        if target.sender_info != message.sender_info:
-            target.receive_message(message)
 
     def print_message(self, message: ChatMessage) -> None:
         """
@@ -160,13 +141,16 @@ class ChatController:
         if message.should_log:
             chatLogger.log(message)
 
+    def send_to_all(self, message: ChatMessage) -> None:
+        self.session.send_to_all(message)
+
     def clear_context(self) -> None:
         """
-        会話のコンテキストをクリアする。
+        全員の会話のコンテキストをクリアする。
         """
-        for participant in self.participants:
-            participant.clear_context()
+        self.session.clear_context()
         self.view.print_message(ChatMessage("=== コンテキストをクリアしました ===", self.system_talker.sender_info))
+
 
     def end_session(self) -> None:
         """
