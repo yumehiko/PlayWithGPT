@@ -80,6 +80,7 @@ class GUI(AbstractUI):
 
         # テキストが入力されたら、必要に応じて高さを調整する。
         self.input_area.textChanged.connect(self.input_area.adjust_height)
+        self.input_area.setFocus()
 
 
     def print_manual(self, system_talker: Talker) -> None:
@@ -119,3 +120,21 @@ class GUI(AbstractUI):
 
         # Insert message text
         self.message_area.insertPlainText(message.text + "\n\n")
+
+    def enable_user_input(self) -> None:
+        self.input_area.setEnabled(True)
+        self.input_area.setFocus()
+
+    def disable_user_input(self) -> None:
+        self.input_area.setEnabled(False)
+
+    def show_waiting_animation(self) -> None:
+        self.main_window.setWindowTitle("PlayWithGPT GUI Mode (Waiting...)")
+        self.main_window.repaint()
+
+    def hide_waiting_animation(self) -> None:
+        self.main_window.setWindowTitle("PlayWithGPT GUI Mode")
+        self.main_window.repaint()
+
+    def process_event(self) -> None:
+        self.app.processEvents(QEventLoop.ProcessEventsFlag.AllEvents, -1)

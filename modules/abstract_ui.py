@@ -36,3 +36,26 @@ class AbstractUI(ABC):
         メッセージを表示する。
         """
         pass
+
+
+    @abstractmethod
+    def enable_user_input(self) -> None:
+        pass
+
+
+    @abstractmethod
+    def disable_user_input(self) -> None:
+        pass
+
+
+    @abstractmethod
+    def show_waiting_animation(self) -> None:
+        pass
+
+    @abstractmethod
+    def hide_waiting_animation(self) -> None:
+        pass
+
+    @abstractmethod
+    def process_event(self) -> None:
+        pass

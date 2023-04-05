@@ -61,7 +61,9 @@ class ChatController:
         for participant in session.participants:
             self.skip = False
             try:
+                self.view.process_event()
                 message = await participant.generate_message()
+                self.view.process_event()
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
@@ -79,11 +81,14 @@ class ChatController:
         for participant in session.participants:
             self.skip = False
             try:
+                self.view.process_event()
                 message = await participant.generate_message()
+                self.view.process_event()
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
                 translated_message = await session.translater.translate(message)
+                self.view.process_event()
                 session.send_to_all(translated_message)
                 # 話者がユーザーの場合のみ、翻訳前の発言を表示する。
                 if message.sender_info.type == TalkerType.user:

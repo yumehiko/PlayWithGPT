@@ -27,6 +27,10 @@ class User(Talker):
         """
         この話者に発言を要求する。
         """
+        self.ui.hide_waiting_animation()
+        self.ui.enable_user_input()
         text = await self.ui.request_user_input()
         message = ChatMessage(text, self.sender_info, True)
+        self.ui.disable_user_input()
+        self.ui.show_waiting_animation()
         return message
