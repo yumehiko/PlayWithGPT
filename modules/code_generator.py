@@ -35,7 +35,11 @@ def split_by_pythoncodeBlock(chat_text: str) -> str:
 
 
 def split_by_codeBlock(chat_text: str) -> str:
-    source_code = chat_text.split("```")[1]
+    splitted = chat_text.split("```")
+    if len(splitted) >= 3:
+        source_code = splitted[1]
+    else:
+        source_code = splitted[0]
     return source_code
 
 
