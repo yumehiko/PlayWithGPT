@@ -15,6 +15,7 @@ class CommandHandler:
             ReadCommand(chat_controller),
             ShowLatestLogCommand(chat_controller),
             GenerateModuleCommand(chat_controller),
+            RequestModuleCommand(chat_controller),
             WritePersonaCommand(chat_controller),
         ]
         chat_controller.message_subject.subscribe(self.handle)

@@ -8,7 +8,7 @@ def write_py_file(chat_text: str) -> str:
 
     # .pyまでを抜き出し、ファイル名とする。
     directory = "modules/"
-    chat_text = chat_text.split("generateModule: ")[1]
+    chat_text = chat_text.split("GenerateModule: ")[1]
     file_name = chat_text.split(".py")[0] + ".py"
 
     # chat_textにpythonコードブロックが含まれている場合、その中身を抜き出す。

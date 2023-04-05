@@ -86,7 +86,7 @@ class GenerateModuleCommand(Command):
         self.chat_controller = chat_controller
     
     def match(self, message_text: str) -> bool:
-        return "execute: generateModule: " in message_text
+        return "execute: GenerateModule: " in message_text
 
     def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         file_name = code_generator.write_py_file(message.text)
@@ -94,12 +94,34 @@ class GenerateModuleCommand(Command):
         self.chat_controller.print_message(message)
 
 
+class RequestModuleCommand(Command):
+    def __init__(self, chat_controller: ChatController):
+        self.chat_controller = chat_controller
+
+    def match(self, message_text: str) -> bool:
+        return bool(re.match(r"^(execute: Request: ).*\..*$", message_text))
+
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
+        match = re.search(r'\b\w+\.py\b', message.text)
+        if match:
+            file_name = match.group(0)
+        else:
+            Exception("ファイル名が見つかりませんでした")
+        print(file_name)
+        source_code = file_finder.read_file(file_name)
+        commandText = file_name + "の内容は次の通りです：\n" + source_code
+        self.chat_controller.send_to_all(ChatMessage(commandText, system_talker.sender_info, False))
+        message = ChatMessage("=== " + file_name + "のソースコードを読み上げました ===", system_talker.sender_info)
+        self.chat_controller.print_message(message)
+        self.chat_controller.skip = True
+
+
 class WritePersonaCommand(Command):
     def __init__(self, chat_controller: ChatController):
         self.chat_controller = chat_controller
     
     def match(self, message_text: str) -> bool:
-        return "execute: writePersona: " in message_text
+        return "execute: WritePersona: " in message_text
 
     def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         file_name = self.write_persona_file(message)
