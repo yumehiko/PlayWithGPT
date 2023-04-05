@@ -23,7 +23,7 @@ class ChatController:
         self.session = session
         chatLogger.initialize()
         self.view.print_manual(self.system_talker)
-        if(session.translate_mode != TranslateType.none):
+        if(session.translate_type != TranslateType.none):
             self.main_loop = asyncio.create_task(self.session_loop_with_translater(session))
         else:
             self.main_loop = asyncio.create_task(self.session_loop(session))
@@ -33,6 +33,7 @@ class ChatController:
         except asyncio.CancelledError:
             pass
         finally:
+            self.session.write_as_yaml()
             self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
             chatLogger.saveJson()
 

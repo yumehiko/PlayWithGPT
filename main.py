@@ -29,7 +29,7 @@ async def main_loop() -> None:
     try:
         session = await app_initializer.ask_app_mode()
     except Exception:
-        return
+        raise
 
     # 会話ロジックループを開始。
     await controller.begin_session(session)

@@ -4,7 +4,7 @@ from modules.chat_message import ChatMessage
 from modules.user import User
 from modules.gptBot import GPTBot
 from modules.chat_controller import ChatController
-from modules.session import Session, SessionType
+from modules.session import Session, SessionConfig, SessionType, SessionConfigLoader
 from modules.translater import Translater, GptTranslater, DeepLTranslater, TranslateType
 import openai
 import yaml
@@ -34,30 +34,74 @@ class AppInitializer:
 
 
     async def ask_app_mode(self) -> Session:
+        # session_config.yamlがあるかどうかを確認し、あるならそれを読み込む。
+        if await self.ask_load_last_session_config():
+            session = self.read_session_config_by_yaml()
+            if session.translate_type != TranslateType.none:
+                translater = self.pick_translater(session.translate_type)
+                session.set_translater(translater)
+            return session
+        
         session_type = await self.ask_session_type()
         participient: list[Talker] = []
-        translate_mode = TranslateType.none
+        translate_type = TranslateType.none
         if session_type == SessionType.cancel:
             raise Exception("No Session")
         elif session_type == SessionType.one_on_one:
-            translate_mode = await self.ask_translate_mode()
+            translate_type = await self.ask_translate_mode()
             user = User(self.view)
             bot = await self.ask_bot_select()
             participient = [user, bot]
         elif session_type == SessionType.bot_on_bot:
-            translate_mode = await self.ask_translate_mode()
+            translate_type = await self.ask_translate_mode()
             bot1 = await self.ask_bot_select()
             bot2 = await self.ask_bot_select()
             participient = [bot1, bot2]
         
-        session = Session(participient, session_type, translate_mode)
+        session = Session(participient, session_type, translate_type)
 
-        if translate_mode != TranslateType.none:
-            translater = self.pick_translater(translate_mode)
+        if translate_type != TranslateType.none:
+            translater = self.pick_translater(translate_type)
             session.set_translater(translater)
 
         return session
+    
+    async def ask_load_last_session_config(self) -> bool:
+        """
+        session_configの設定を読み込むか尋ねる。
+        """
+
+        # session_config.yamlがない場合はFalseを返す。
+        if not os.path.exists("session_config.yaml"):
+            return False
+
+        text = "前回のセッション設定で始めますか？（y/n）"
+        self.view.print_message(ChatMessage(text, self.system_talker.sender_info, False))
+        while True:
+            answer = await self.view.request_user_input()
+            if answer == "y":
+                return True
+            elif answer == "n":
+                return False
+            else:
+                self.view.print_message(ChatMessage("yかnを入力してください。", self.system_talker.sender_info, False))
             
+    def read_session_config_by_yaml(self) -> Session:
+        """
+        session_config.yamlから設定を読み込む。
+        """
+        with open("session_config.yaml", "r", encoding="utf-8") as infile:
+            session_config: SessionConfig = yaml.load(infile, Loader = SessionConfigLoader)
+            participants: list[Talker] = []
+            for participant_name in session_config.participant_names:
+                talker: Talker
+                if participant_name == "user":
+                    talker = User(self.view)
+                else:
+                    talker = GPTBot(participant_name, self.system_talker)
+                participants.append(talker)
+            session = Session(participants, session_config.session_type, session_config.translate_type)
+            return session
 
     async def ask_session_type(self) -> SessionType:
         text = "セッションタイプを選択してください：\n"

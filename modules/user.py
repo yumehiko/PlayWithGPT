@@ -10,7 +10,7 @@ class User(Talker):
     talkerを継承し、abstract_uiクラスを利用してtalkerとして振る舞う。
     """
     def __init__(self, ui: AbstractUI):
-        super().__init__(TalkerType.user, "User")
+        super().__init__(TalkerType.user, "user", "User")
         self.ui = ui
 
     @property

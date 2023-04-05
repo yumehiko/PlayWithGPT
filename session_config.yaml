@@ -1,0 +1,4 @@
+!SessionConfig
+participants: [user, assistant]
+session_type: one_on_one
+translate_type: deepl

@@ -20,7 +20,7 @@ class GPTBot(Talker):
             self.model_id = persona["model_id"]
             self.personality = {"role": system_talker.type.name, "content": persona["personality"]}
             self.token_limit = int(persona["token_limit"])
-            super().__init__(TalkerType.assistant, persona["name"])
+            super().__init__(TalkerType.assistant, persona["persona_name"], persona["display_name"])
         
         # 会話の文脈を初期化する
         self.context: List[Dict[str, str]] = []

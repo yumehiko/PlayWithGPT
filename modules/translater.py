@@ -43,7 +43,8 @@ class GptTranslater(Translater):
         # personaを読み込み、botのmodel_id、name、personalityを設定する。
         with open("personas/" + "translater" + ".json", encoding="utf-8") as persona_file:
             persona = json.load(persona_file)
-            self.name = persona["name"]
+            self.persona_name = persona["persona_name"]
+            self.display_name = persona["display_name"]
             self._talker_type = TalkerType.assistant
             self.model_id = persona["model_id"]
             self.personality = persona["personality"]

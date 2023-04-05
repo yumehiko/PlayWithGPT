@@ -3,7 +3,8 @@ from modules.translater import Translater, TranslateType
 from modules.chat_message import ChatMessage
 from enum import Enum
 import yaml
-
+from yaml import MappingNode
+from typing import Union, IO
 
 
 class SessionType(Enum):
@@ -14,11 +15,36 @@ class SessionType(Enum):
 
 
 
+class SessionConfig:
+    def __init__(self, participant_names: list[str], session_type: SessionType, translate_type: TranslateType) -> None:
+        self.participant_names = participant_names
+        self.session_type = session_type
+        self.translate_type = translate_type
+
+
+
+class SessionConfigLoader(yaml.SafeLoader):
+    def __init__(self, stream: Union[str, bytes, IO[str], IO[bytes]]) -> None:
+        super().__init__(stream)
+
+    def read_session_config(self, node: MappingNode) -> SessionConfig:
+        data = self.construct_mapping(node)
+        return SessionConfig(
+            participant_names=data["participants"],
+            session_type=SessionType[data["session_type"]],
+            translate_type=TranslateType[data["translate_type"]]
+        )
+
+    
+SessionConfigLoader.add_constructor("!SessionConfig", SessionConfigLoader.read_session_config)
+
+
+
 class Session:
     def __init__(self, participiants: list[Talker], type: SessionType, translate_type: TranslateType) -> None:
         self.participants = participiants
-        self.session_mode = type
-        self.translate_mode = translate_type
+        self.type = type
+        self.translate_type = translate_type
     
 
     def set_translater(self, translater: Translater) -> None:
@@ -48,6 +74,18 @@ class Session:
         for participant in self.participants:
             participant.clear_context()
 
+
     def write_as_yaml(self) -> None:
-        with open('config.yaml', 'w', encoding="utf-8") as outfile:
-            yaml.dump(self.__dict__, outfile)
+        participant_names = []
+        for participant in self.participants:
+            participant_names.append(participant.persona_name)
+        config = {
+                "participants": participant_names,
+                "session_type": self.type.name,
+                "translate_type": self.translate_type.name
+        }
+
+        with open("session_config.yaml", "w", encoding="utf-8") as outfile:
+                outfile.write("!SessionConfig\n")
+                yaml.dump(config, outfile, allow_unicode=True, explicit_start=False, default_flow_style=None, Dumper=yaml.SafeDumper)
+

@@ -10,11 +10,12 @@ from modules.sender_info import SenderInfo
 
 class Talker():
 
-    def __init__(self, talker_type: TalkerType = TalkerType.none, persona_name: str = "") -> None:
+    def __init__(self, talker_type: TalkerType = TalkerType.none, persona_name: str = "", display_name: str = "") -> None:
         self._text_subject = ChatMessageSubject()
         self._type = talker_type
-        self.name = persona_name
-        self._sender_info = SenderInfo(self.name, self._type)
+        self.persona_name = persona_name
+        self.display_name = display_name
+        self._sender_info = SenderInfo(self.persona_name, self._type)
 
     @property
     def type(self) -> TalkerType:

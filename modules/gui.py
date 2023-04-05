@@ -15,6 +15,7 @@ class InputArea(QTextEdit):
         super().__init__(parent)
         self.user_input_queue = user_input_queue
 
+
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Return:
             if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
@@ -24,11 +25,13 @@ class InputArea(QTextEdit):
         else:
             super().keyPressEvent(event)
 
+
     def send_message(self) -> None:
         text = self.toPlainText()
         if text:
             self.clear()
             asyncio.create_task(self.user_input_queue.put(text))
+
 
     def adjust_height(self) -> None:
         cursor = self.textCursor()
@@ -36,6 +39,7 @@ class InputArea(QTextEdit):
         self.setTextCursor(cursor)
         height = self.document().size().height()
         self.setFixedHeight(int(min(height, 200)))
+
 
 
 class GUI(AbstractUI):
@@ -46,8 +50,10 @@ class GUI(AbstractUI):
         self.user_input_queue: asyncio.Queue[str] = asyncio.Queue()
         self.init_ui()
 
+
     def get_app_instance(self) -> QApplication:
         return self.app
+
 
     def init_ui(self) -> None:
         # メインウィンドウの設定
@@ -75,11 +81,14 @@ class GUI(AbstractUI):
         # テキストが入力されたら、必要に応じて高さを調整する。
         self.input_area.textChanged.connect(self.input_area.adjust_height)
 
+
     def print_manual(self, system_talker: Talker) -> None:
         self.print_message(ChatMessage("\n".join(self.manual), system_talker.sender_info, False))
 
+
     async def request_user_input(self) -> str:
         return await self.user_input_queue.get()
+
 
     def print_message(self, message: ChatMessage) -> None:
         # カーソルを末尾へ移動する。
