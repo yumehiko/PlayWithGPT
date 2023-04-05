@@ -113,7 +113,7 @@ class GUI(AbstractUI):
         if message.sender_info.type == TalkerType.user:
             name = "You: "
         elif message.sender_info.type == TalkerType.assistant:
-            name = "Bot: "
+            name = message.sender_info.display_name + ": "
         else:
             name = ""
         self.message_area.insertPlainText(name)

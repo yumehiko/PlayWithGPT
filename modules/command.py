@@ -74,7 +74,11 @@ class EndCommand(Command):
         
     def match(self, message_text: str) -> bool:
         keywords = ["end", "e"]
-        return message_text.lower() in keywords
+        if message_text.lower() in keywords:
+            return True
+        if "execute: End" in message_text:
+            return True
+        return False
 
     def execute(self, message: ChatMessage, system_talker: Talker) -> None:
         self.chat_controller.end_session()

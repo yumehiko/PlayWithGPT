@@ -12,7 +12,7 @@ class Talker():
         self._type = talker_type
         self.persona_name = persona_name
         self.display_name = display_name
-        self._sender_info = SenderInfo(self.persona_name, self._type)
+        self._sender_info = SenderInfo(self.persona_name, self.display_name, self._type)
 
     @property
     def type(self) -> TalkerType:
