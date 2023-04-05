@@ -1,13 +1,12 @@
 from modules.talker import Talker
-from modules.abstract_ui import AbstractUI
 from modules.talker_type import TalkerType
+from modules.abstract_ui import AbstractUI
 from modules.chat_message import ChatMessage
 
 
 class User(Talker):
     """
-    ユーザーを表すクラス。
-    talkerを継承し、abstract_uiクラスを利用してtalkerとして振る舞う。
+    発言を要求されたとき、ユーザーの入力を待機し、入力された発言を返す。
     """
     def __init__(self, ui: AbstractUI):
         super().__init__(TalkerType.user, "user", "User")

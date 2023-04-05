@@ -1,5 +1,5 @@
-from modules.talker_type import TalkerType
 from modules.talker import Talker
+from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage
 from typing import List, Dict
 import openai
@@ -7,7 +7,7 @@ import json
 
 class GPTBot(Talker):
     """
-    会話の相手となるChatGPT-Bot。
+    会話の相手となるChatGPT-Bot。人格を持ち、文脈を記憶し、発言する。
     """
     def __init__(self, persona_name: str, system_talker: Talker) -> None:
         """

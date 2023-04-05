@@ -1,11 +1,10 @@
-from modules.talker_type import TalkerType
 from modules.talker import Talker
+from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage
 from typing import List, Dict
 import requests
 import openai
 import json
-import yaml
 from abc import ABC, abstractmethod
 from enum import Enum
 
@@ -31,6 +30,7 @@ class Translater(ABC):
         与えられたテキストを翻訳して返す。
         """
         pass
+
 
 
 class GptTranslater(Translater):

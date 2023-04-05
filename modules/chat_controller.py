@@ -1,7 +1,7 @@
 from modules.talker import Talker
 from modules.talker_type import TalkerType
 from modules.chat_message import ChatMessage, ChatMessageSubject
-from modules import chatLogger
+from modules import log_writer
 from modules.abstract_ui import AbstractUI
 from modules.session import Session
 from modules.translater import TranslateType
@@ -21,7 +21,7 @@ class ChatController:
         会話を開始する。
         """
         self.session = session
-        chatLogger.initialize()
+        log_writer.initialize()
         self.view.print_manual(self.system_talker)
         if(session.translate_type != TranslateType.none):
             self.main_loop = asyncio.create_task(self.session_loop_with_translater(session))
@@ -35,7 +35,7 @@ class ChatController:
         finally:
             self.session.write_as_yaml()
             self.view.print_message(ChatMessage("=== ログを記録しました。セッションを終了します ===", self.system_talker.sender_info))
-            chatLogger.saveJson()
+            log_writer.saveJson()
 
 
     async def session_loop(self, session: Session) -> None:
@@ -107,7 +107,7 @@ class ChatController:
 
         # logすべきなら、logする。
         if message.should_log:
-            chatLogger.log(message)
+            log_writer.log(message)
 
     def send_to_all(self, message: ChatMessage) -> None:
         self.session.send_to_all(message)

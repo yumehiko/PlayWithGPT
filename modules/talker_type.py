@@ -1,6 +1,8 @@
-import enum
+from enum import Enum
 
-class TalkerType(enum.Enum):
+
+
+class TalkerType(Enum):
     none = 0,
     user = 1,
     assistant = 2,

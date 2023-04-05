@@ -1,15 +1,12 @@
-"""
-Chatの話者の抽象クラス。発言を受ける。発言を行う。
-"""
-
 from __future__ import annotations
-from modules.chat_message import ChatMessage, ChatMessageSubject
+from modules.chat_message import ChatMessage, ChatMessageSubject, SenderInfo
 from modules.talker_type import TalkerType
-from modules.sender_info import SenderInfo
 
 
 class Talker():
-
+    """
+    Chatの話者の基底クラス。発言を受ける。発言を行う。
+    """
     def __init__(self, talker_type: TalkerType = TalkerType.none, persona_name: str = "", display_name: str = "") -> None:
         self._text_subject = ChatMessageSubject()
         self._type = talker_type

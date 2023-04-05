@@ -1,5 +1,17 @@
-from modules.sender_info import SenderInfo
 from rx.subject import Subject # type: ignore[attr-defined]
+from modules.talker_type import TalkerType
+
+
+
+class SenderInfo:
+    """
+    ChatMessageの送信者情報。
+    """
+    def __init__(self, name: str, type: TalkerType):
+        self.name = name
+        self.type = type
+
+
 
 class ChatMessage:
     """
@@ -9,6 +21,7 @@ class ChatMessage:
         self.text = text
         self.sender_info = sender_info
         self.should_log = should_log
+
 
 
 class ChatMessageSubject(Subject):

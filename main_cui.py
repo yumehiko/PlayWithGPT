@@ -2,8 +2,6 @@
 アプリケーションの起点となるモジュール。CUIバージョン。
 """
 
-from modules.user import User
-from modules.gptBot import GPTBot
 from modules.talker import Talker
 from modules.talker_type import TalkerType
 from modules.command_handler import CommandHandler
