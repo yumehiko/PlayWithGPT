@@ -1,0 +1,6 @@
+New Module: hello.py
+
+class Hello
+
+say(num: int)
+numの回数だけ「Hello」とprintする。

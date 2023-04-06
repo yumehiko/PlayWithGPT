@@ -6,7 +6,8 @@ from modules.talker import Talker
 
 
 class AbstractUI(ABC):
-    def __init__(self) -> None:
+    def __init__(self, system_talker: Talker) -> None:
+        self.system_talker = system_talker
         self.manual = [
             "=== PlayWithGPT ===",
             "Clear、またはcと入力すると、文脈をクリアします。",
@@ -41,7 +42,6 @@ class AbstractUI(ABC):
     @abstractmethod
     def enable_user_input(self) -> None:
         pass
-
 
     @abstractmethod
     def disable_user_input(self) -> None:

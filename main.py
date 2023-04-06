@@ -12,37 +12,44 @@ from modules.app_initializer import AppInitializer
 from modules.chat_controller import ChatController
 import asyncio
 
-async def main_loop() -> None:
-    """
-    アプリケーションのメインループ。
-    """
+class Main:
+    def __init__(self) -> None:
+        """
+        アプリケーションの初期化を行う。
+        """
+        # system_talkerはシステムとしての発言を行うためのオブジェクト。
+        self.system_talker = Talker(TalkerType.system, "System")
 
-    # system_talkerはシステムとしての発言を行うためのオブジェクト。
-    system_talker = Talker(TalkerType.system, "System")
+        # GUIモードのインターフェースを生成する。
+        self.view = GUI(self.system_talker)
 
-    controller = ChatController(view, system_talker)
-    command_handler = CommandHandler(system_talker, controller)
+        # ロジック部を初期化する。
+        self.controller = ChatController(self.view, self.system_talker)
+        self.command_handler = CommandHandler(self.system_talker, self.controller)
+        self.app_initializer = AppInitializer(self.view, self.system_talker, self.controller)
+        self.view.main_window.show()
 
-    view.main_window.show()
+    async def run(self) -> None:
+        """
+        アプリケーションのメインループ。
+        """
+        # アプリケーションのモードを選択する。
+        try:
+            session = await self.app_initializer.ask_app_mode()
+        except Exception:
+            raise
 
-    app_initializer = AppInitializer(view, system_talker, controller)
-    try:
-        session = await app_initializer.ask_app_mode()
-    except Exception:
-        raise
-
-    # 会話ロジックループを開始。
-    await controller.begin_session(session)
+        # 会話ロジックループを開始。
+        await self.controller.begin_session(session)
 
 if __name__ == "__main__":
-    # GUIモードのインターフェースを生成する。
-    view = GUI()
+    main = Main()
 
     # Qtイベントループとasyncioイベントループを一緒に実行
-    loop = qasync.QEventLoop(view.get_app_instance())
+    loop = qasync.QEventLoop(main.view.get_app_instance())
     asyncio.set_event_loop(loop)
 
     try:
-        loop.run_until_complete(main_loop())
+        loop.run_until_complete(main.run())
     finally:
         loop.close()

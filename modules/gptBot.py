@@ -31,7 +31,12 @@ class GPTBot(Talker):
         """
         Botの文脈に追記する。
         """
-        memorable_message = {"role": message.sender_info.type.name, "content": message.text}
+        role : str
+        if message.sender_info.type == TalkerType.system:
+            role = "system" 
+        else :
+            role = "user"
+        memorable_message = {"role": role, "content": message.text}
         self.context.append(memorable_message)
     
 

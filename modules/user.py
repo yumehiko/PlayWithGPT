@@ -12,9 +12,6 @@ class User(Talker):
         super().__init__(TalkerType.user, "user", "User")
         self.ui = ui
 
-    @property
-    def type(self) -> TalkerType:
-        return self._type
 
     def receive_message(self, message: ChatMessage) -> None:
         """

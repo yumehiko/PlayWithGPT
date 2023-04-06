@@ -7,8 +7,8 @@ import colorama
 
 
 class CUI(AbstractUI):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, system_talker: Talker) -> None:
+        super().__init__(system_talker)
         colorama.init()
 
     def print_manual(self, system_talker: Talker) -> None:
@@ -50,3 +50,18 @@ class CUI(AbstractUI):
 
         # 空行を入れる
         print()
+
+    def enable_user_input(self) -> None:
+        pass
+
+    def disable_user_input(self) -> None:
+        pass
+
+    def show_waiting_animation(self) -> None:
+        pass
+
+    def hide_waiting_animation(self) -> None:
+        pass
+
+    def process_event(self) -> None:
+        pass

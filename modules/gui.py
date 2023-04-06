@@ -43,8 +43,8 @@ class InputArea(QTextEdit):
 
 
 class GUI(AbstractUI):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, system_talker: Talker) -> None:
+        super().__init__(system_talker)
         self.app = QApplication(sys.argv)
         self.main_window = QMainWindow()
         self.user_input_queue: asyncio.Queue[str] = asyncio.Queue()
