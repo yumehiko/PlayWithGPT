@@ -35,10 +35,7 @@ class AppInitializer:
     async def ask_app_mode(self) -> Session:
         # session_config.yamlがあるかどうかを確認し、あるならそれを読み込む。
         if await self.ask_load_last_session_config():
-            session = self.read_session_config_by_yaml()
-            if session.translate_type != TranslateType.none:
-                translater = self.pick_translater(session.translate_type)
-                session.set_translater(translater)
+            session = await self.load_session_config()
             return session
         
         session_type = await self.ask_session_type()
@@ -52,13 +49,17 @@ class AppInitializer:
             raise ValueError("Invalid session type.")
 
 
-    async def make_one_on_one_session(self) -> Session:
+    async def make_one_on_one_session(self, bot_name: str = "", translate_type: TranslateType = TranslateType.undefined) -> Session:
         """
         1対1のセッションを作成する。
         """
-        translate_type = await self.ask_translate_mode()
+        if translate_type == TranslateType.undefined:
+            translate_type = await self.ask_translate_mode()
         user = User(self.view)
-        bot = await self.ask_bot_select()
+        if not bot_name:
+            bot = await self.ask_bot_select()
+        else:
+            bot = GPTBot(bot_name, self.system_talker)
         session = OneOnOneSession(self.view, self.system_talker, [user, bot], translate_type)
 
         if translate_type != TranslateType.none:
@@ -66,13 +67,18 @@ class AppInitializer:
             session.set_translater(translater)
         return session
 
-    async def make_bot_on_bot_session(self) -> Session:
+    async def make_bot_on_bot_session(self, participant_names: list[str] = [], translate_type: TranslateType = TranslateType.undefined) -> Session:
         """
         Bot同士のセッションを作成する。
         """
-        translate_type = await self.ask_translate_mode()
-        bot0 = await self.ask_bot_select(0)
-        bot1 = await self.ask_bot_select(1)
+        if translate_type == TranslateType.undefined:
+            translate_type = await self.ask_translate_mode()
+        if not participant_names:
+            bot0 = await self.ask_bot_select(0)
+            bot1 = await self.ask_bot_select(1)
+        else:
+            bot0 = GPTBot(participant_names[0], self.system_talker)
+            bot1 = GPTBot(participant_names[1], self.system_talker)
         session = BotOnBotSession(self.view, self.system_talker, [bot0, bot1], translate_type)
 
         if translate_type != TranslateType.none:
@@ -81,11 +87,14 @@ class AppInitializer:
         return session
 
 
-    async def make_auto_task_session(self) -> Session:
+    async def make_auto_task_session(self, bot_name: str = "") -> Session:
         """
         botが自動でタスクを行うセッションを作成する。
         """
-        bot = await self.ask_bot_select()
+        if not bot_name:
+            bot = await self.ask_bot_select()
+        else:
+            bot = GPTBot(bot_name, self.system_talker)
         # tasksディレクトリ内にファイルがあるか確認する。
         # ファイルがあるなら、そのファイルを読み込み、userメッセージとしてbotに渡す。
         # ファイルがないなら、例外を返す。
@@ -124,22 +133,26 @@ class AppInitializer:
             else:
                 self.view.print_message(ChatMessage("yかnを入力してください。", self.system_talker.sender_info, False))
             
-    def read_session_config_by_yaml(self) -> Session:
+    
+    async def load_session_config(self) -> Session:
         """
         session_config.yamlから設定を読み込む。
         """
+        session_type = SessionType.none
         with open("session_config.yaml", "r", encoding="utf-8") as infile:
             session_config: SessionConfig = yaml.load(infile, Loader = SessionConfigLoader)
-            participants: list[Talker] = []
-            for participant_name in session_config.participant_names:
-                talker: Talker
-                if participant_name == "user":
-                    talker = User(self.view)
-                else:
-                    talker = GPTBot(participant_name, self.system_talker)
-                participants.append(talker)
-            session = Session(self.view, self.system_talker, participants, session_config.session_type, session_config.translate_type)
-            return session
+            # セッションタイプを取得する。
+            session_type = session_config.session_type
+        # セッションタイプに応じて、セッションを作成する。
+        if session_type == SessionType.one_on_one:
+            return await self.make_one_on_one_session(session_config.participant_names[1], session_config.translate_type)
+        elif session_type == SessionType.bot_on_bot:
+            return await self.make_bot_on_bot_session(session_config.participant_names, session_config.translate_type)
+        elif session_type == SessionType.auto_task:
+            return await self.make_auto_task_session(session_config.participant_names[0])
+        else:
+            raise ValueError("Invalid session type.")
+        
 
 
     async def ask_session_type(self) -> SessionType:

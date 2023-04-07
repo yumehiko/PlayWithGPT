@@ -15,9 +15,9 @@ def generate_module(file_name: str, source_code: str) -> None:
     # codeにpythonコードブロックが含まれておらず、かつコードブロックはある場合、コードブロックで抜き出す。
     elif "```" in source_code:
         source_code = split_by_codeBlock(source_code)
-    # codeにpythonコードブロックもコードブロックも含まれていない場合、ファイル名以後を抜き出す。
+    # codeにpythonコードブロックもコードブロックも含まれていない場合、そのままソースコードを使用する。
     else:
-        source_code = split_by_fileName(source_code)
+        pass
 
     # .pyファイルに書き出す
     with open(directory + file_name, 'w', encoding="utf-8") as f:

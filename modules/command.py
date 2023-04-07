@@ -90,6 +90,23 @@ class GenerateModuleCommand(Command):
         self.session.print_message(message)
 
 
+
+class GenerateTaskCommand(Command):
+    def match(self, message_text: str) -> bool:
+        return "execute: GenerateTask: " in message_text
+    
+    def execute(self, message: ChatMessage, system_talker: Talker) -> None:
+        chat_text = message.text.split("GenerateTask: ")[1]
+        file_name = chat_text.split(".py")[0] + ".task"
+        task = chat_text.split(".py")[1]
+        
+        # .taskファイルとしてtasks/に書き出す
+        directory = "tasks/"
+        with open(directory + file_name, 'w', encoding="utf-8") as f:
+            f.write(task)
+
+
+
 class RequestModuleCommand(Command):
     def match(self, message_text: str) -> bool:
         return bool(re.match(r"^(execute: Request: ).*\..*$", message_text))

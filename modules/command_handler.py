@@ -15,6 +15,7 @@ class CommandHandler:
             ReadCommand(session),
             ShowLatestLogCommand(session),
             GenerateModuleCommand(session),
+            GenerateTaskCommand(session),
             RequestModuleCommand(session),
             WritePersonaCommand(session),
         ]

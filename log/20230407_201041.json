@@ -1,0 +1,7 @@
+[
+    {
+        "role": "assistant",
+        "content": "```python\nclass Hello:\n    def say(self, num: int) -> None:\n        for _ in range(num):\n            print('Hello')\n```",
+        "datetime": "2023/04/07 20:10:38"
+    }
+]

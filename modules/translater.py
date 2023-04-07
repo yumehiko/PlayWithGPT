@@ -22,9 +22,10 @@ class TranslateType(Enum):
     """
     翻訳モードの種類。
     """
-    none = 0
-    deepl = 1
-    chatgpt = 2
+    undefined = 0
+    none = 1
+    deepl = 2
+    chatgpt = 3
 
 
 

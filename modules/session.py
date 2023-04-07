@@ -12,6 +12,7 @@ import os
 import yaml
 from yaml import MappingNode
 from typing import Union, IO
+import shutil
 import asyncio
 
 
@@ -58,6 +59,7 @@ class Session(ABC):
         self.translate_type = translate_type
         self.message_subject = ChatMessageSubject()
         self.is_end: bool = False
+        self.skip: bool = False
     
     @property
     def has_translater(self) -> bool:
@@ -131,33 +133,12 @@ class Session(ABC):
             except asyncio.CancelledError:
                 raise
 
-
+    @abstractmethod
     async def chat(self) -> None:
         """
-        参加者全員が会話を1周行う。
-        ただし、すべての発言は翻訳者によって翻訳される。
+        会話処理。
         """
-        for participant in self.participants:
-            self.skip = False
-            try:
-                self.view.process_event()
-                message = await participant.generate_message()
-                self.view.process_event()
-                self.message_subject.on_next(message)
-                if self.skip:
-                    return
-                if self.has_translater:
-                    sender_is_user: bool = message.sender_info.type == TalkerType.user
-                    printable_message = message
-                    if sender_is_user:
-                        message = await self.translater.translate(message, Language.EN)
-                    else:
-                        printable_message = await self.translater.translate(message, Language.JP)
-                    self.view.process_event()
-                self.send_to_all(message)
-                self.print_message(printable_message)
-            except asyncio.CancelledError:
-                raise
+        pass
 
 
     def print_message(self, message: ChatMessage) -> None:
@@ -184,6 +165,33 @@ class OneOnOneSession(Session):
     """
     def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker], translate_type: TranslateType) -> None:
         super().__init__(view, system_talker, participants, SessionType.one_on_one, translate_type)
+    
+
+    async def chat(self) -> None:
+        """
+        参加者全員が会話を1周行う。
+        """
+        for participant in self.participants:
+            self.skip = False
+            try:
+                self.view.process_event()
+                message = await participant.generate_message()
+                self.view.process_event()
+                self.message_subject.on_next(message)
+                if self.skip:
+                    return
+                if self.has_translater:
+                    sender_is_user: bool = message.sender_info.type == TalkerType.user
+                    printable_message = message
+                    if sender_is_user:
+                        message = await self.translater.translate(message, Language.EN)
+                    else:
+                        printable_message = await self.translater.translate(message, Language.JP)
+                    self.view.process_event()
+                self.send_to_all(message)
+                self.print_message(printable_message)
+            except asyncio.CancelledError:
+                raise
 
 class BotOnBotSession(Session):
     """
@@ -191,6 +199,43 @@ class BotOnBotSession(Session):
     """
     def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker], translate_type: TranslateType) -> None:
         super().__init__(view, system_talker, participants, SessionType.bot_on_bot, translate_type)
+ 
+
+    async def begin(self) -> None:
+        # はじめに、ユーザーから議題の入力を受け取り、それをbot全員に送信する。
+        self.view.print_message(ChatMessage("=== 議題を入力してください ===", self.system_talker.sender_info, False))
+        topic = await self.view.request_user_input()
+        topic = "議題：\n" + topic
+        topic_message = ChatMessage(topic, self.system_talker.sender_info)
+        self.send_to_all(topic_message)
+        self.view.print_message(topic_message)
+        return await super().begin()
+
+    async def chat(self) -> None:
+        """
+        参加者全員が会話を1周行う。
+        """
+        for participant in self.participants:
+            self.skip = False
+            try:
+                self.view.process_event()
+                message = await participant.generate_message()
+                self.view.process_event()
+                self.message_subject.on_next(message)
+                if self.skip:
+                    return
+                if self.has_translater:
+                    printable_message = await self.translater.translate(message, Language.JP)
+                    self.view.process_event()
+                self.send_to_all(message)
+                self.print_message(printable_message)
+
+                # botが発言するたびに、ユーザーからの入力を5秒待ち、もし入力があった場合、セッションを終了する。
+                # 入力がなかった場合、セッションを続行する。
+                # TODO: set_place_holder()を実装する。
+                # TODO: ユーザーからの入力を受け取ると、セッションを終了する。
+            except asyncio.CancelledError:
+                raise
 
 class AutoTaskSession(Session):
     """
@@ -208,11 +253,26 @@ class AutoTaskSession(Session):
         message = await self.participants[0].generate_message()
         self.view.process_event()
         self.print_message(message)
-        # taskの拡張子をtxtからpyに変換し、file_nameとする
-        file_name = self.task.replace(".gm", ".py")
+        # taskの拡張子をtaskからpyに変換し、file_nameとする
+        module_name = self.task.replace(".task", ".py")
+        task_file_path = os.path.join("tasks/", self.task)
         source_code = message.text
-        code_generator.generate_module(file_name, source_code)
-        # モジュール生成後は、タスクファイルの拡張子を「.gm」から「.nt」に変更する。
-        task_path = os.path.join("tasks", self.task)
-        os.rename(task_path, task_path.replace(".gm", ".nt"))
+        code_generator.generate_module(module_name, source_code)
+        # taskファイルをtests/ディレクトリに移動する。
+        shutil.move(task_file_path, "tests/")
+        # TODO: テストを実行する。
+
+        # ユーザーの確認を待ち、セッションを終了する。
+        await self.wait_end()
+    
+    async def wait_end(self) -> None:
+        """
+        ユーザーが何か入力するまで待ち、終了する。
+        """
+        # 入力を促すメッセージを表示する。
+        text = "=== タスクの自動実行が完了しました。 ===\n"
+        text += "=== 何か入力すると終了します。 ==="
+        self.view.print_message(ChatMessage(text, self.system_talker.sender_info))
+        self.view.enable_user_input()
+        await self.view.request_user_input()
         self.is_end = True
