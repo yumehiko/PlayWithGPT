@@ -1,4 +1,4 @@
 !SessionConfig
-participants: [user, assistant]
+participants: [user, traveler]
 session_type: one_on_one
-translate_type: deepl
+translate_type: deepl_free

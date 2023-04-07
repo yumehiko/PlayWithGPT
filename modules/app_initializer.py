@@ -4,7 +4,7 @@ from modules.chat_message import ChatMessage
 from modules.user import User
 from modules.gptBot import GPTBot
 from modules.session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession, AutoTaskSession
-from modules.translater import Translater, GptTranslater, DeepLTranslater, TranslateType
+from modules.translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
 from modules import file_finder
 import openai
 import yaml
@@ -29,6 +29,7 @@ class AppInitializer:
             # APIキーが設定できたか確認し、設定されていない場合は例外を返す
             if not openai.api_key:
                 raise ValueError("APIKey is not set.")
+            self.deepl_api_key_free = config["deepl"]["api_key_free"]
             self.deepl_api_key = config["deepl"]["api_key"]
 
 
@@ -207,7 +208,7 @@ class AppInitializer:
     async def ask_translate_mode(self) -> TranslateType:
         translate_types = {
             "N": ("翻訳なし", TranslateType.none),
-            "D": ("DeepL翻訳", TranslateType.deepl),
+            "D": ("DeepL翻訳 Free版", TranslateType.deepl_free),
             "G": ("ChatGPT翻訳", TranslateType.chatgpt),
         }
 
@@ -233,9 +234,9 @@ class AppInitializer:
 
 
     def pick_translater(self, translate_mode: TranslateType) -> Translater:
-        if translate_mode == TranslateType.deepl and self.deepl_api_key:
-            return DeepLTranslater(self.deepl_api_key)
-        elif translate_mode == TranslateType.deepl and not self.deepl_api_key:
+        if translate_mode == TranslateType.deepl_free and self.deepl_api_key_free:
+            return DeepLFreeTranslater(self.deepl_api_key_free)
+        elif translate_mode == TranslateType.deepl_free and not self.deepl_api_key_free:
             message = ChatMessage("DeepL APIキーが設定されていません。ChatGPT翻訳で実行します。", self.system_talker.sender_info, False)
             self.view.print_message(message)
             return GptTranslater(self.system_talker)

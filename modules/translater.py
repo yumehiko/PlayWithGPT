@@ -25,7 +25,8 @@ class TranslateType(Enum):
     undefined = 0
     none = 1
     deepl = 2
-    chatgpt = 3
+    deepl_free = 3
+    chatgpt = 4
 
 
 
@@ -85,9 +86,9 @@ class GptTranslater(Translater):
         return ChatMessage(response, message.sender_info, True)
 
 
-class DeepLTranslater(Translater):
+class DeepLFreeTranslater(Translater):
     """
-    DeepLによる翻訳
+    DeepL Free版による翻訳
     """
     def __init__(self, api_key: str) -> None:
         self.API_KEY = api_key
