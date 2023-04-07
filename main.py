@@ -9,7 +9,7 @@ from modules.talker_type import TalkerType
 from modules.command_handler import CommandHandler
 from modules.gui import GUI
 from modules.app_initializer import AppInitializer
-from modules.chat_controller import ChatController
+from modules import log_writer
 import asyncio
 
 class Main:
@@ -23,10 +23,10 @@ class Main:
         # GUIモードのインターフェースを生成する。
         self.view = GUI(self.system_talker)
 
+        log_writer.initialize()
+
         # ロジック部を初期化する。
-        self.controller = ChatController(self.view, self.system_talker)
-        self.command_handler = CommandHandler(self.system_talker, self.controller)
-        self.app_initializer = AppInitializer(self.view, self.system_talker, self.controller)
+        self.app_initializer = AppInitializer(self.view, self.system_talker)
         self.view.main_window.show()
 
     async def run(self) -> None:
@@ -39,8 +39,13 @@ class Main:
         except Exception:
             raise
 
+        self.command_handler = CommandHandler(self.system_talker, session)
+
         # 会話ロジックループを開始。
-        await self.controller.begin_session(session)
+        try:
+            await session.begin()
+        finally:
+            log_writer.saveJson()
 
 if __name__ == "__main__":
     main = Main()

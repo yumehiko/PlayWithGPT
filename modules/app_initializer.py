@@ -3,9 +3,9 @@ from modules.talker import Talker
 from modules.chat_message import ChatMessage
 from modules.user import User
 from modules.gptBot import GPTBot
-from modules.chat_controller import ChatController
-from modules.session import Session, SessionConfig, SessionType, SessionConfigLoader
+from modules.session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession, AutoTaskSession
 from modules.translater import Translater, GptTranslater, DeepLTranslater, TranslateType
+from modules import file_finder
 import openai
 import yaml
 from enum import Enum
@@ -18,10 +18,9 @@ class AppInitializer:
     """
     PlayWithGPTの初期設定を行うクラス。
     """
-    def __init__(self, view: AbstractUI, system_talker: Talker, chat_controller: ChatController) -> None:
+    def __init__(self, view: AbstractUI, system_talker: Talker) -> None:
         self.view = view
         self.system_talker = system_talker
-        self.chat_controller = chat_controller
 
         # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
         with open("key.yaml") as key_file:
@@ -43,29 +42,68 @@ class AppInitializer:
             return session
         
         session_type = await self.ask_session_type()
-        participient: list[Talker] = []
-        translate_type = TranslateType.none
-        if session_type == SessionType.cancel:
-            raise Exception("No Session")
-        elif session_type == SessionType.one_on_one:
-            translate_type = await self.ask_translate_mode()
-            user = User(self.view)
-            bot = await self.ask_bot_select()
-            participient = [user, bot]
+        if session_type == SessionType.one_on_one:
+            return await self.make_one_on_one_session()
         elif session_type == SessionType.bot_on_bot:
-            translate_type = await self.ask_translate_mode()
-            bot1 = await self.ask_bot_select()
-            bot2 = await self.ask_bot_select()
-            participient = [bot1, bot2]
-        
-        session = Session(participient, session_type, translate_type)
+            return await self.make_bot_on_bot_session()
+        elif session_type == SessionType.auto_task:
+            return await self.make_auto_task_session()
+        else:
+            raise ValueError("Invalid session type.")
+
+
+    async def make_one_on_one_session(self) -> Session:
+        """
+        1対1のセッションを作成する。
+        """
+        translate_type = await self.ask_translate_mode()
+        user = User(self.view)
+        bot = await self.ask_bot_select()
+        session = OneOnOneSession(self.view, self.system_talker, [user, bot], translate_type)
 
         if translate_type != TranslateType.none:
             translater = self.pick_translater(translate_type)
             session.set_translater(translater)
-
         return session
-    
+
+    async def make_bot_on_bot_session(self) -> Session:
+        """
+        Bot同士のセッションを作成する。
+        """
+        translate_type = await self.ask_translate_mode()
+        bot0 = await self.ask_bot_select(0)
+        bot1 = await self.ask_bot_select(1)
+        session = BotOnBotSession(self.view, self.system_talker, [bot0, bot1], translate_type)
+
+        if translate_type != TranslateType.none:
+            translater = self.pick_translater(translate_type)
+            session.set_translater(translater)
+        return session
+
+
+    async def make_auto_task_session(self) -> Session:
+        """
+        botが自動でタスクを行うセッションを作成する。
+        """
+        bot = await self.ask_bot_select()
+        # tasksディレクトリ内にファイルがあるか確認する。
+        # ファイルがあるなら、そのファイルを読み込み、userメッセージとしてbotに渡す。
+        # ファイルがないなら、例外を返す。
+        if not os.path.exists("tasks"):
+            raise FileNotFoundError("tasksディレクトリがありません。")
+        files = os.listdir("tasks")
+        if len(files) == 0:
+            raise FileNotFoundError("tasksディレクトリにファイルがありません。")
+        # 0番目のファイルの内容をstrで取得する。
+        with open("tasks/" + files[0], "r", encoding="utf-8") as infile:
+            task = infile.read()
+        bot.receive_message(ChatMessage(task, User(self.view).sender_info, False))
+        # ファイルを読み込んだことを、ファイル名を含んだメッセージで示す。
+        self.view.print_message(ChatMessage(f"tasks/{files[0]}を読み込みました。", self.system_talker.sender_info))
+        session = AutoTaskSession(self.view, self.system_talker, [bot], TranslateType.none, files[0])
+        return session
+
+
     async def ask_load_last_session_config(self) -> bool:
         """
         session_configの設定を読み込むか尋ねる。
@@ -100,36 +138,40 @@ class AppInitializer:
                 else:
                     talker = GPTBot(participant_name, self.system_talker)
                 participants.append(talker)
-            session = Session(participants, session_config.session_type, session_config.translate_type)
+            session = Session(self.view, self.system_talker, participants, session_config.session_type, session_config.translate_type)
             return session
 
+
     async def ask_session_type(self) -> SessionType:
-        text = "セッションタイプを選択してください：\n"
-        text += "    (o) ユーザーとBotのOne-on-Oneセッション\n"
-        text += "    (b) Bot同士のオートセッション\n"
-        text += "    (c) キャンセル\n"
-        message = ChatMessage(text, self.system_talker.sender_info, False)
+        session_types = {
+            "O": ("One-on-One", SessionType.one_on_one),
+            "B": ("Bot-on-Bot", SessionType.bot_on_bot),
+            "G": ("自動タスク処理", SessionType.auto_task),
+            "Q": ("終了", SessionType.cancel)
+        }
+
+        message_text = "セッションタイプを選択してください：\n"
+        for key, values in session_types.items():
+            message_text += f"    ({key}) {values[0]}\n"
+
+        message = ChatMessage(message_text, self.system_talker.sender_info, False)
         self.view.print_message(message)
-        input = ""
-        while(input != "o" and input != "b" and input != "c"):
+
+        user_input = ""
+        while user_input not in session_types:
             try:
-                input = await self.view.request_user_input()
+                user_input = await self.view.request_user_input()
+                user_input = user_input.upper()
             except asyncio.CancelledError:
                 raise
-        if input == "o":
-            message = ChatMessage("One-on-Oneセッションを開始します。", self.system_talker.sender_info, False)
-            self.view.print_message(message)
-            return SessionType.one_on_one
-        elif input == "b":
-            message = ChatMessage("Bot同士のオートセッションを開始します。", self.system_talker.sender_info, False)
-            self.view.print_message(message)
-            return SessionType.bot_on_bot
-        else:
-            return SessionType.cancel
-        
+        message_text = f"{session_types[user_input][0]}を選択しました。"
+        message = ChatMessage(message_text, self.system_talker.sender_info, False)
+        self.view.print_message(message)
+        return session_types[user_input][1]
 
-    async def ask_bot_select(self) -> GPTBot:
-        text = "会話したいBotの名前を入力してください"
+        
+    async def ask_bot_select(self, num: int = 0) -> GPTBot:
+        text = "会話したいBotの名前を入力してください" if num == 0 else "応答するBotの名前を入力してください"
         message = ChatMessage(text, self.system_talker.sender_info, False)
         self.view.print_message(message)
         directory = "personas/"
@@ -144,36 +186,38 @@ class AppInitializer:
             except asyncio.CancelledError:
                 raise
         bot = GPTBot(persona_name, self.system_talker)
+        message = ChatMessage(f"{persona_name}を選択しました。", self.system_talker.sender_info, False)
+        self.view.print_message(message)
         return bot
     
 
     async def ask_translate_mode(self) -> TranslateType:
-        text = "翻訳モードを選択してください：\n"
-        text += "    (n) 翻訳なし\n"
-        text += "    (d) DeepL翻訳\n"
-        text += "    (g) ChatGPT翻訳\n"
-        message = ChatMessage(text, self.system_talker.sender_info, False)
+        translate_types = {
+            "N": ("翻訳なし", TranslateType.none),
+            "D": ("DeepL翻訳", TranslateType.deepl),
+            "G": ("ChatGPT翻訳", TranslateType.chatgpt),
+        }
+
+        message_text = "翻訳モードを選択してください：\n"
+        for option_key, option_values in translate_types.items():
+            message_text += f"    ({option_key}) {option_values[0]}\n"
+
+        message = ChatMessage(message_text, self.system_talker.sender_info, False)
         self.view.print_message(message)
-        input = ""
-        while(input != "n" and input != "d" and input != "g"):
+
+        user_input = ""
+        while user_input not in translate_types:
             try:
-                input = await self.view.request_user_input()
+                user_input = await self.view.request_user_input()
+                user_input = user_input.upper()
             except asyncio.CancelledError:
                 raise
+            
+        message_text = f"{translate_types[user_input][0]}を選択しました。"
+        message = ChatMessage(message_text, self.system_talker.sender_info, False)
+        self.view.print_message(message)
+        return translate_types[user_input][1]
 
-        if input == "d": 
-            message = ChatMessage("DeepL翻訳を選択しました。", self.system_talker.sender_info, False)
-            self.view.print_message(message)
-            return TranslateType.deepl
-        elif input == "g":
-            message = ChatMessage("ChatGPT翻訳を選択しました。", self.system_talker.sender_info, False)
-            self.view.print_message(message)
-            return TranslateType.chatgpt
-        else:
-            message = ChatMessage("翻訳なしを選択しました。", self.system_talker.sender_info, False)
-            self.view.print_message(message)
-            return TranslateType.none
-    
 
     def pick_translater(self, translate_mode: TranslateType) -> Translater:
         if translate_mode == TranslateType.deepl and self.deepl_api_key:

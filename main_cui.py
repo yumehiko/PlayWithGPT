@@ -7,7 +7,7 @@ from modules.talker_type import TalkerType
 from modules.command_handler import CommandHandler
 from modules.app_initializer import AppInitializer
 from modules.cui import CUI
-from modules.chat_controller import ChatController
+from modules import log_writer
 import asyncio
 
 class Main:
@@ -18,11 +18,9 @@ class Main:
         # CUIモードのインターフェースを生成する。
         self.view = CUI(self.system_talker)
 
-        # 会話コントローラおよびコマンドハンドラを生成する。
-        self.controller = ChatController(self.view, self.system_talker)
-        self.command_handler = CommandHandler(self.system_talker, self.controller)
+        log_writer.initialize()
 
-        self.app_initializer = AppInitializer(self.view, self.system_talker, self.controller)
+        self.app_initializer = AppInitializer(self.view, self.system_talker)
 
 
     async def run(self) -> None:
@@ -35,8 +33,14 @@ class Main:
         except Exception:
             raise
 
+        # 会話コントローラおよびコマンドハンドラを生成する。
+        self.command_handler = CommandHandler(self.system_talker, session)
+
         # 会話ロジックループを開始。
-        await self.controller.begin_session(session)
+        try:
+            await session.begin()
+        finally:
+            log_writer.saveJson()
 
 
 

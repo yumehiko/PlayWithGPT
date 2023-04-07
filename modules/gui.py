@@ -65,19 +65,19 @@ class GUI(AbstractUI):
         layout = QVBoxLayout(central_widget)
         self.main_window.setCentralWidget(central_widget)
 
+        # メッセージ欄の設定
         self.message_area = QTextEdit(central_widget)
         self.message_area.setReadOnly(True)
         layout.addWidget(self.message_area)
 
+        # 入力欄の設定
         self.input_area = InputArea(self.user_input_queue, self.main_window)
         self.input_area.setPlaceholderText("メッセージを入力：Shift+Enterで改行、Enterで送信")
         self.input_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.input_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.input_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.input_area.setFixedHeight(self.input_area.fontMetrics().height() + 10)
-
         layout.addWidget(self.input_area)
-
         # テキストが入力されたら、必要に応じて高さを調整する。
         self.input_area.textChanged.connect(self.input_area.adjust_height)
         self.input_area.setFocus()

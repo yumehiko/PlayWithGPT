@@ -1,31 +1,27 @@
 
 
-def write_py_file(chat_text: str) -> str:
+
+def generate_module(file_name: str, source_code: str) -> None:
     """
-    チャットの発言を元に.pyファイルを書き出し、そのファイル名を返す。
-    chat_textには、ファイル名から始まる発言が含まれている。
+    ファイル名とソースコードから、.pyファイルを生成する。
     """
 
     # .pyまでを抜き出し、ファイル名とする。
     directory = "modules/"
-    chat_text = chat_text.split("GenerateModule: ")[1]
-    file_name = chat_text.split(".py")[0] + ".py"
 
-    # chat_textにpythonコードブロックが含まれている場合、その中身を抜き出す。
-    if "```python" in chat_text:
-        source_code = split_by_pythoncodeBlock(chat_text)
-    # chat_textにpythonコードブロックが含まれておらず、かつコードブロックはある場合、コードブロックで抜き出す。
-    elif "```" in chat_text:
-        source_code = split_by_codeBlock(chat_text)
-    # chat_textにpythonコードブロックもコードブロックも含まれていない場合、ファイル名以後を抜き出す。
+    # codeにpythonコードブロックが含まれている場合、その中身を抜き出す。
+    if "```python" in source_code:
+        source_code = split_by_pythoncodeBlock(source_code)
+    # codeにpythonコードブロックが含まれておらず、かつコードブロックはある場合、コードブロックで抜き出す。
+    elif "```" in source_code:
+        source_code = split_by_codeBlock(source_code)
+    # codeにpythonコードブロックもコードブロックも含まれていない場合、ファイル名以後を抜き出す。
     else:
-        source_code = split_by_fileName(chat_text)
+        source_code = split_by_fileName(source_code)
 
     # .pyファイルに書き出す
     with open(directory + file_name, 'w', encoding="utf-8") as f:
         f.write(source_code)
-
-    return file_name
 
 
 def split_by_pythoncodeBlock(chat_text: str) -> str:

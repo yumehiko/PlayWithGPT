@@ -1,0 +1,7 @@
+[
+    {
+        "role": "assistant",
+        "content": "以下は、mypy lint に準拠した形式の Python コードです。\n\n```python\nclass Hello:\n    def say(self, num: int) -> None:\n        \"\"\"Prints \"Hello\" num number of times.\"\"\"\n        for i in range(num):\n            print(\"Hello\")\n```\n\n`Hello` クラスの `say` メソッドは、引数 `num` で指定された回数だけ「Hello」と出力するものです。`say` メソッドは `None` を返します。`for` ループを使用して、`num` 回だけ `print` 文を実行しています。また、`say` の引数 `num` が整数であることを示すために、`int`を型アノテーションとして付加しています。",
+        "datetime": "2023/04/07 17:22:17"
+    }
+]

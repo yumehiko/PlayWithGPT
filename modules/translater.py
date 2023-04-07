@@ -8,6 +8,14 @@ import json
 from abc import ABC, abstractmethod
 from enum import Enum
 
+class Language(Enum):
+    """
+    翻訳先の言語。
+    """
+    none = 0
+    EN = 1
+    JP = 2
+
 
 
 class TranslateType(Enum):
@@ -25,7 +33,7 @@ class Translater(ABC):
     翻訳者の基底クラス。
     """
     @abstractmethod
-    async def translate(self, message: ChatMessage) -> ChatMessage:
+    async def translate(self, message: ChatMessage, language: Language) -> ChatMessage:
         """
         与えられたテキストを翻訳して返す。
         """
@@ -52,13 +60,15 @@ class GptTranslater(Translater):
         self.personality_memory = {
             "role": system_talker.sender_info.type.name, "content": self.personality}
 
-    async def translate(self, message: ChatMessage) -> ChatMessage:
+    async def translate(self, message: ChatMessage, language: Language) -> ChatMessage:
         print("原文：", message.text)
 
-        if message.sender_info.type == TalkerType.assistant:
+        if language == Language.JP:
             command = "次の文章を日本語に翻訳しなさい："
-        else:
+        elif language == Language.EN:
             command = "次の文章を英語に翻訳しなさい："
+        else:
+            raise ValueError("未定義の言語")
 
         command_message = {"role": self.system_talker.type.name, "content": command}
         formatted_message = {"role": message.sender_info.type.name, "content": message.text}
@@ -81,14 +91,16 @@ class DeepLTranslater(Translater):
     def __init__(self, api_key: str) -> None:
         self.API_KEY = api_key
 
-    async def translate(self, message: ChatMessage) -> ChatMessage:
+    async def translate(self, message: ChatMessage, language: Language) -> ChatMessage:
         print("原文：", message.text)
-        if message.sender_info.type == TalkerType.assistant:
+        if language == Language.JP:
             source_lang = 'EN'
             target_lang = 'JA'
-        else :
+        elif language == Language.EN:
             source_lang = 'JA'
             target_lang = 'EN'
+        else:
+            raise ValueError("未定義の言語")
 
         # パラメータの指定
         params = {
