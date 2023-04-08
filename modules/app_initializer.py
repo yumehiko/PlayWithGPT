@@ -96,21 +96,7 @@ class AppInitializer:
             bot = await self.ask_bot_select()
         else:
             bot = GPTBot(bot_name, self.system_talker)
-        # tasksディレクトリ内にファイルがあるか確認する。
-        # ファイルがあるなら、そのファイルを読み込み、userメッセージとしてbotに渡す。
-        # ファイルがないなら、例外を返す。
-        if not os.path.exists("tasks"):
-            raise FileNotFoundError("tasksディレクトリがありません。")
-        files = os.listdir("tasks")
-        if len(files) == 0:
-            raise FileNotFoundError("tasksディレクトリにファイルがありません。")
-        # 0番目のファイルの内容をstrで取得する。
-        with open("tasks/" + files[0], "r", encoding="utf-8") as infile:
-            task = infile.read()
-        bot.receive_message(ChatMessage(task, User(self.view).sender_info, False))
-        # ファイルを読み込んだことを、ファイル名を含んだメッセージで示す。
-        self.view.print_message(ChatMessage(f"tasks/{files[0]}を読み込みました。", self.system_talker.sender_info))
-        session = AutoTaskSession(self.view, self.system_talker, [bot], TranslateType.none, files[0])
+        session = AutoTaskSession(self.view, self.system_talker, [bot])
         return session
 
 

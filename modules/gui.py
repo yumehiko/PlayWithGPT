@@ -83,10 +83,6 @@ class GUI(AbstractUI):
         self.input_area.setFocus()
 
 
-    def print_manual(self, system_talker: Talker) -> None:
-        self.print_message(ChatMessage("\n".join(self.manual), system_talker.sender_info, False))
-
-
     async def request_user_input(self) -> str:
         return await self.user_input_queue.get()
 

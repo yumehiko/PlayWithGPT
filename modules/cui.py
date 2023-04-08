@@ -11,11 +11,6 @@ class CUI(AbstractUI):
         super().__init__(system_talker)
         colorama.init()
 
-    def print_manual(self, system_talker: Talker) -> None:
-        """
-        ユーザーに対して、このアプリケーションの使い方を表示する。
-        """
-        self.print_message(ChatMessage("\n".join(self.manual), system_talker.sender_info, False))
 
     async def request_user_input(self) -> str:
         """

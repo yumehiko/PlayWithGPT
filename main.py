@@ -29,6 +29,7 @@ class Main:
         self.app_initializer = AppInitializer(self.view, self.system_talker)
         self.view.main_window.show()
 
+
     async def run(self) -> None:
         """
         アプリケーションのメインループ。
@@ -46,6 +47,19 @@ class Main:
             await session.begin()
         finally:
             log_writer.saveJson()
+            await self.wait_for_user_input()        
+        
+
+    async def wait_for_user_input(self) -> None:
+        """
+        ユーザーが何らかの入力をするまで待ち、その後アプリケーションを終了する。
+        """
+        text = "=== セッションが完了しました ===\n"
+        text += "=== 何か入力すると、終了します ==="
+        self.view.print_message_as_system(text, False)
+        self.view.enable_user_input()
+        await self.view.request_user_input()
+
 
 if __name__ == "__main__":
     main = Main()

@@ -1,7 +1,7 @@
 from modules.talker import Talker
 from modules.talker_type import TalkerType
 from modules.translater import Translater, TranslateType
-from modules.chat_message import ChatMessage, ChatMessageSubject
+from modules.chat_message import ChatMessage, ChatMessageSubject, SenderInfo
 from modules import log_writer
 from modules.translater import TranslateType, Language
 from modules.abstract_ui import AbstractUI
@@ -73,7 +73,16 @@ class Session(ABC):
         """
         会話を開始する。
         """
-        self.view.print_manual(self.system_talker)
+        manuals = [
+            "=== PlayWithGPT ===",
+            "Clear、またはcと入力すると、文脈をクリアします。",
+            "Log、またはlと入力すると、最新のログを参照します（文脈には含まれない）。",
+            "read: fileName.pyと入力すると、fileName.pyのソースコードをBotに対して読み上げます。",
+            "End、またはeと入力すると、セッションを終了します。",
+            "=== 会話を開始します ===",
+        ]
+        manual_text = "\n".join(manuals)
+        self.view.print_message_as_system(manual_text, False)
         self.main_loop = asyncio.create_task(self.session_loop())
         
         try:
@@ -241,9 +250,33 @@ class AutoTaskSession(Session):
     """
     Botがタスクを処理する。
     """
-    def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker], translate_type: TranslateType, task: str) -> None:
-        super().__init__(view, system_talker, participants, SessionType.auto_task, translate_type)
-        self.task = task
+    def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker]) -> None:
+        super().__init__(view, system_talker, participants, SessionType.auto_task, TranslateType.none)
+        try:
+            self.task = self.get_task()
+        except FileNotFoundError as e:
+            self.view.print_message(ChatMessage(e.strerror, self.system_talker.sender_info))
+        
+
+    def get_task(self) -> str:
+        bot = self.participants[0]
+        # tasksディレクトリ内にファイルがあるか確認する。
+        # ファイルがあるなら、そのファイルを読み込み、userメッセージとしてbotに渡す。
+        # ファイルがないなら、例外を返す。
+        if not os.path.exists("tasks"):
+            raise FileNotFoundError("tasksディレクトリがありません。")
+        files = os.listdir("tasks")
+        if len(files) == 0:
+            raise FileNotFoundError("tasksディレクトリにファイルがありません。")
+        # 0番目のファイルの内容をstrで取得する。
+        with open("tasks/" + files[0], "r", encoding="utf-8") as infile:
+            task = infile.read()
+        user_info = SenderInfo("user", "User", TalkerType.user)
+        bot.receive_message(ChatMessage(task, user_info, False))
+        # ファイルを読み込んだことを、ファイル名を含んだメッセージで示す。
+        self.view.print_message(ChatMessage(f"tasks/{files[0]}を読み込みました。", self.system_talker.sender_info))
+        return task
+
 
     async def chat(self) -> None:
         # MEMO: ここにある処理は、NewModuleを生成するのみ。
@@ -262,17 +295,14 @@ class AutoTaskSession(Session):
         shutil.move(task_file_path, "tests/")
         # TODO: テストを実行する。
 
-        # ユーザーの確認を待ち、セッションを終了する。
-        await self.wait_end()
-    
-    async def wait_end(self) -> None:
+    # タスクファイルの拡張子から、タスクの種類を判別する。
+    def get_task_type(self) -> str:
         """
-        ユーザーが何か入力するまで待ち、終了する。
+        タスクファイルの拡張子から、タスクの種類を判別する。
         """
-        # 入力を促すメッセージを表示する。
-        text = "=== タスクの自動実行が完了しました。 ===\n"
-        text += "=== 何か入力すると終了します。 ==="
-        self.view.print_message(ChatMessage(text, self.system_talker.sender_info))
-        self.view.enable_user_input()
-        await self.view.request_user_input()
-        self.is_end = True
+        task_type = ""
+        if self.task.endswith(".gm"):
+            task_type = "モジュール生成"
+        elif self.task.endswith(".nt"):
+            task_type = "テスト"
+        return task_type
