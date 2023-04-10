@@ -1,0 +1,12 @@
+[
+    {
+        "role": "assistant",
+        "content": "class Hello:\n\n    @staticmethod\n    def say(num: int) -> str:\n        return \"Hello\" * num",
+        "datetime": "2023/04/10 12:36:13"
+    },
+    {
+        "role": "system",
+        "content": "コードを生成しました。",
+        "datetime": "2023/04/10 12:36:13"
+    }
+]

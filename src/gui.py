@@ -1,11 +1,11 @@
+from .abstract_ui import AbstractUI
+from .chat_message import ChatMessage
+from .talker import Talker
+from .talker_type import TalkerType
 from PyQt6.QtGui import QTextCharFormat, QColor
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QTextEdit, QLineEdit, QWidget, QSizePolicy
 from PyQt6.QtGui import QTextOption, QTextBlockFormat, QTextCursor, QKeyEvent
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QEventLoop, QEvent
-from modules.abstract_ui import AbstractUI
-from modules.chat_message import ChatMessage
-from modules.talker import Talker
-from modules.talker_type import TalkerType
 from typing import Optional, Callable
 import sys
 import asyncio

@@ -1,10 +1,10 @@
+from .talker import Talker
+from .chat_message import ChatMessage
+from .session import Session
+from . import code_generator
+from . import log_reader
+from . import file_finder
 from abc import ABC, abstractmethod
-from modules.talker import Talker
-from modules.chat_message import ChatMessage
-from modules.session import Session
-from modules import code_generator
-from modules import log_reader
-from modules import file_finder
 import re
 import json
 

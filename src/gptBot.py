@@ -1,9 +1,10 @@
-from modules.talker import Talker
-from modules.talker_type import TalkerType
-from modules.chat_message import ChatMessage
+from .talker import Talker
+from .talker_type import TalkerType
+from .chat_message import ChatMessage
 from typing import List, Dict
 import openai
 import json
+import os 
 
 class GPTBot(Talker):
     """
@@ -15,7 +16,8 @@ class GPTBot(Talker):
         """
         self.system_talker = system_talker
         #personaを読み込み、botのmodel_id、name、personalityを設定する。
-        with open("personas/" + persona_name + ".json", encoding="utf-8") as persona_file:
+        persona_path = os.path.join("personas", persona_name + ".json")
+        with open(persona_path, encoding="utf-8") as persona_file:
             persona = json.load(persona_file)
             self.model_id = persona["model_id"]
             self.personality = {"role": system_talker.type.name, "content": persona["personality"]}
@@ -67,7 +69,8 @@ class GPTBot(Talker):
     
     def compress_to_summary(self) -> None:
         
-        system_command = {"role": "system", "content": "Command: Summarize the context so far in 400 words or less."}
+        content = "Please compress the following text as much as possible while preserving its meaning. It can be in a form that is not human readable. You are free to use any characters and expressions you wish. You may use emoji and symbols."
+        system_command = {"role": "system", "content": content}
         self.context.append(system_command)
 
         summary_data = openai.ChatCompletion.create(  # type: ignore[no-untyped-call]

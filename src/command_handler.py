@@ -1,8 +1,8 @@
-from modules.command import Command
-from modules.chat_message import ChatMessage
-from modules.session import Session
-from modules.command import *
-from modules.talker import Talker
+from .command import Command
+from .chat_message import ChatMessage
+from .session import Session
+from .command import EndCommand, ClearCommand, ReadCommand, ShowLatestLogCommand, GenerateModuleCommand, GenerateTaskCommand, RequestModuleCommand, WritePersonaCommand
+from .talker import Talker
 from typing import Dict
 
 class CommandHandler:

@@ -1,7 +1,7 @@
-from modules.talker import Talker
-from modules.talker_type import TalkerType
-from modules.abstract_ui import AbstractUI
-from modules.chat_message import ChatMessage
+from .talker import Talker
+from .talker_type import TalkerType
+from .abstract_ui import AbstractUI
+from .chat_message import ChatMessage
 
 
 class User(Talker):

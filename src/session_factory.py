@@ -1,22 +1,21 @@
-from modules.abstract_ui import AbstractUI
-from modules.talker import Talker
-from modules.chat_message import ChatMessage
-from modules.user import User
-from modules.gptBot import GPTBot
-from modules.session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession, AutoTaskSession
-from modules.translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
-from modules import file_finder
+from .abstract_ui import AbstractUI
+from .talker import Talker
+from .chat_message import ChatMessage
+from .user import User
+from .gptBot import GPTBot
+from .session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession
+from .auto_task_session import AutoTaskSession
+from .translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
 import openai
 import yaml
-from enum import Enum
 import os
 import asyncio
 
 
 
-class AppInitializer:
+class SessionFactory:
     """
-    PlayWithGPTの初期設定を行うクラス。
+    セッションを生成するファクトリクラス
     """
     def __init__(self, view: AbstractUI, system_talker: Talker) -> None:
         self.view = view
@@ -36,7 +35,7 @@ class AppInitializer:
     async def ask_app_mode(self) -> Session:
         # session_config.yamlがあるかどうかを確認し、あるならそれを読み込む。
         if await self.ask_load_last_session_config():
-            session = await self.load_session_config()
+            session = await self.load_session_from_config()
             return session
         
         session_type = await self.ask_session_type()
@@ -88,15 +87,11 @@ class AppInitializer:
         return session
 
 
-    async def make_auto_task_session(self, bot_name: str = "") -> Session:
+    async def make_auto_task_session(self) -> Session:
         """
         botが自動でタスクを行うセッションを作成する。
         """
-        if not bot_name:
-            bot = await self.ask_bot_select()
-        else:
-            bot = GPTBot(bot_name, self.system_talker)
-        session = AutoTaskSession(self.view, self.system_talker, [bot])
+        session = AutoTaskSession(self.view, self.system_talker)
         return session
 
 
@@ -121,7 +116,7 @@ class AppInitializer:
                 self.view.print_message(ChatMessage("yかnを入力してください。", self.system_talker.sender_info, False))
             
     
-    async def load_session_config(self) -> Session:
+    async def load_session_from_config(self) -> Session:
         """
         session_config.yamlから設定を読み込む。
         """
@@ -136,7 +131,7 @@ class AppInitializer:
         elif session_type == SessionType.bot_on_bot:
             return await self.make_bot_on_bot_session(session_config.participant_names, session_config.translate_type)
         elif session_type == SessionType.auto_task:
-            return await self.make_auto_task_session(session_config.participant_names[0])
+            return await self.make_auto_task_session()
         else:
             raise ValueError("Invalid session type.")
         

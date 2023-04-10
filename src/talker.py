@@ -1,6 +1,6 @@
 from __future__ import annotations
-from modules.chat_message import ChatMessage, ChatMessageSubject, SenderInfo
-from modules.talker_type import TalkerType
+from .chat_message import ChatMessage, ChatMessageSubject, SenderInfo
+from .talker_type import TalkerType
 
 
 class Talker():

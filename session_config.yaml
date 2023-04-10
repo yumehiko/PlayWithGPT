@@ -1,4 +1,4 @@
 !SessionConfig
-participants: [user, traveler]
-session_type: one_on_one
-translate_type: deepl_free
+participants: [test_coder]
+session_type: auto_task
+translate_type: none

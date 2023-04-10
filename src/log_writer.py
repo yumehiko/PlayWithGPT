@@ -1,6 +1,6 @@
+from .chat_message import ChatMessage
 import json
 from datetime import datetime
-from modules.chat_message import ChatMessage
 from typing import List, Dict
 
 # logData: ログデータを格納するリスト
@@ -37,9 +37,18 @@ def saveJson() -> None:
     """
     これまでに記録したログデータをjson形式で保存する
     """
+
+    # ログが空なら、何もしない
+    if len(logData) == 0:
+        return
+
     # ファイル名を取得
     now = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = "log/" + now + ".json"
+
     # ログデータをjson形式で保存
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(logData, f, indent=4, ensure_ascii=False)
+    
+    # ログデータを初期化
+    logData.clear()

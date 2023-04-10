@@ -1,18 +1,15 @@
-from modules.talker import Talker
-from modules.talker_type import TalkerType
-from modules.translater import Translater, TranslateType
-from modules.chat_message import ChatMessage, ChatMessageSubject, SenderInfo
-from modules import log_writer
-from modules.translater import TranslateType, Language
-from modules.abstract_ui import AbstractUI
-from modules import code_generator
+from .talker import Talker
+from .talker_type import TalkerType
+from .translater import Translater, TranslateType, NoTranslater
+from .chat_message import ChatMessage, ChatMessageSubject, SenderInfo
+from .translater import TranslateType, Language
+from .abstract_ui import AbstractUI
+from . import log_writer
 from abc import ABC, abstractmethod
 from enum import Enum
-import os
 import yaml
 from yaml import MappingNode
 from typing import Union, IO
-import shutil
 import asyncio
 
 
@@ -49,7 +46,6 @@ class SessionConfigLoader(yaml.SafeLoader):
 SessionConfigLoader.add_constructor("!SessionConfig", SessionConfigLoader.read_session_config)
 
 
-
 class Session(ABC):
     def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker], type: SessionType, translate_type: TranslateType) -> None:
         self.view = view
@@ -60,10 +56,15 @@ class Session(ABC):
         self.message_subject = ChatMessageSubject()
         self.is_end: bool = False
         self.skip: bool = False
+        self.translater: Translater = NoTranslater()
     
     @property
     def has_translater(self) -> bool:
-        return self.translater is not None
+        """
+        translaterがNoTranslaterでないかどうかを返す。
+        """
+        return not isinstance(self.translater, NoTranslater)
+
 
     def set_translater(self, translater: Translater) -> None:
         self.translater = translater
@@ -185,16 +186,16 @@ class OneOnOneSession(Session):
             try:
                 self.view.process_event()
                 message = await participant.generate_message()
+                printable_message = message
                 self.view.process_event()
                 self.message_subject.on_next(message)
                 if self.skip:
                     return
                 if self.has_translater:
                     sender_is_user: bool = message.sender_info.type == TalkerType.user
-                    printable_message = message
-                    if sender_is_user:
+                    if sender_is_user: # ユーザーからの発話なら、Botへの伝達メッセージは日本語から英語に翻訳する。
                         message = await self.translater.translate(message, Language.EN)
-                    else:
+                    else: # Botからの発話なら、表示用のメッセージを英語から日本語に翻訳する。
                         printable_message = await self.translater.translate(message, Language.JP)
                     self.view.process_event()
                 self.send_to_all(message)
@@ -246,63 +247,5 @@ class BotOnBotSession(Session):
             except asyncio.CancelledError:
                 raise
 
-class AutoTaskSession(Session):
-    """
-    Botがタスクを処理する。
-    """
-    def __init__(self, view: AbstractUI, system_talker: Talker, participants: list[Talker]) -> None:
-        super().__init__(view, system_talker, participants, SessionType.auto_task, TranslateType.none)
-        try:
-            self.task = self.get_task()
-        except FileNotFoundError as e:
-            self.view.print_message(ChatMessage(e.strerror, self.system_talker.sender_info))
-        
-
-    def get_task(self) -> str:
-        bot = self.participants[0]
-        # tasksディレクトリ内にファイルがあるか確認する。
-        # ファイルがあるなら、そのファイルを読み込み、userメッセージとしてbotに渡す。
-        # ファイルがないなら、例外を返す。
-        if not os.path.exists("tasks"):
-            raise FileNotFoundError("tasksディレクトリがありません。")
-        files = os.listdir("tasks")
-        if len(files) == 0:
-            raise FileNotFoundError("tasksディレクトリにファイルがありません。")
-        # 0番目のファイルの内容をstrで取得する。
-        with open("tasks/" + files[0], "r", encoding="utf-8") as infile:
-            task = infile.read()
-        user_info = SenderInfo("user", "User", TalkerType.user)
-        bot.receive_message(ChatMessage(task, user_info, False))
-        # ファイルを読み込んだことを、ファイル名を含んだメッセージで示す。
-        self.view.print_message(ChatMessage(f"tasks/{files[0]}を読み込みました。", self.system_talker.sender_info))
-        return task
 
 
-    async def chat(self) -> None:
-        # MEMO: ここにある処理は、NewModuleを生成するのみ。
-        #       将来的には、生成したモジュールのテストも自動実行する必要がある。
-        #       タスクファイルの拡張子は、タスクの種類ごとに「モジュール生成：.gm」「テスト：.nt」とする。
-        #       モジュール生成後は、タスクファイルの拡張子を「.gm」から「.nt」に変更する。
-        message = await self.participants[0].generate_message()
-        self.view.process_event()
-        self.print_message(message)
-        # taskの拡張子をtaskからpyに変換し、file_nameとする
-        module_name = self.task.replace(".task", ".py")
-        task_file_path = os.path.join("tasks/", self.task)
-        source_code = message.text
-        code_generator.generate_module(module_name, source_code)
-        # taskファイルをtests/ディレクトリに移動する。
-        shutil.move(task_file_path, "tests/")
-        # TODO: テストを実行する。
-
-    # タスクファイルの拡張子から、タスクの種類を判別する。
-    def get_task_type(self) -> str:
-        """
-        タスクファイルの拡張子から、タスクの種類を判別する。
-        """
-        task_type = ""
-        if self.task.endswith(".gm"):
-            task_type = "モジュール生成"
-        elif self.task.endswith(".nt"):
-            task_type = "テスト"
-        return task_type

@@ -4,12 +4,12 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QEventLoop
 import qasync
-from modules.talker import Talker
-from modules.talker_type import TalkerType
-from modules.command_handler import CommandHandler
-from modules.gui import GUI
-from modules.app_initializer import AppInitializer
-from modules import log_writer
+from src.talker import Talker
+from src.talker_type import TalkerType
+from src.command_handler import CommandHandler
+from src.gui import GUI
+from src.session_factory import SessionFactory
+from src import log_writer
 import asyncio
 
 class Main:
@@ -26,17 +26,20 @@ class Main:
         log_writer.initialize()
 
         # ロジック部を初期化する。
-        self.app_initializer = AppInitializer(self.view, self.system_talker)
+        self.app_initializer = SessionFactory(self.view, self.system_talker)
         self.view.main_window.show()
 
 
-    async def run(self) -> None:
+    async def run(self, start_as_latest_setting: bool = False) -> None:
         """
         アプリケーションのメインループ。
         """
         # アプリケーションのモードを選択する。
         try:
-            session = await self.app_initializer.ask_app_mode()
+            if start_as_latest_setting:
+                session = await self.app_initializer.load_session_from_config()
+            else:
+                session = await self.app_initializer.ask_app_mode()
         except Exception:
             raise
 
@@ -47,18 +50,38 @@ class Main:
             await session.begin()
         finally:
             log_writer.saveJson()
-            await self.wait_for_user_input()        
+            await self.ask_session_end()        
         
 
-    async def wait_for_user_input(self) -> None:
+    async def ask_session_end(self) -> None:
         """
-        ユーザーが何らかの入力をするまで待ち、その後アプリケーションを終了する。
+        セッション終了処理をユーザーに尋ねる。
         """
-        text = "=== セッションが完了しました ===\n"
-        text += "=== 何か入力すると、終了します ==="
-        self.view.print_message_as_system(text, False)
+        end_types = {
+            "N": "新規セッション",
+            "R": "同様の設定で新規セッション",
+            "Q": "アプリケーションを終了"
+        }
+        message_text = "=== セッションを終了しました ===\n"
+        for key, value in end_types.items():
+            message_text += f"    ({key}) {value}\n"
+        self.view.print_message_as_system(message_text, False)
         self.view.enable_user_input()
-        await self.view.request_user_input()
+        user_input = ""
+        while user_input not in end_types:
+            try:
+                user_input = await self.view.request_user_input()
+                user_input = user_input.upper()
+            except asyncio.CancelledError:
+                raise
+        message_text = f"{end_types[user_input]}を選択しました。"
+        self.view.print_message_as_system(message_text, False)
+        if user_input == "N":
+            await self.run()
+        elif user_input == "R":
+            await self.run(True)
+        else:
+            return
 
 
 if __name__ == "__main__":

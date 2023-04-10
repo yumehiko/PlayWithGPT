@@ -1,30 +1,35 @@
 import os
 
 
-def find_file_path(file_name: str) -> str:
+def find_file_path(file_name: str, search_dir: str = "") -> str:
     """
-    リポジトリ内で、指定したファイル名を持つファイルのパスを返す。
+    指定したディレクトリ内で、指定したファイル名を持つファイルのパスを返す。
     該当するファイルがない場合は、空文字列を返す。
     """
     # モジュールファイルの親ディレクトリ
     repo_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    print(repo_path)
+    # 検索対象のディレクトリを決定する
+    if not search_dir:
+        search_dir = repo_path
+    else:
+        search_dir = os.path.join(repo_path, search_dir)
 
-    # リポジトリ直下とサブディレクトリをすべて探索する
-    for root, dirs, files in os.walk(repo_path):
+    # 指定されたディレクトリ内でファイルを探索する
+    for root, dirs, files in os.walk(search_dir):
         if file_name in files:
             return os.path.join(root, file_name)
-    return ""
+    raise FileNotFoundError(f"{file_name}が見つかりませんでした。")
 
 
-def read_file(file_name: str) -> str:
+
+def read_file(file_name: str, search_dir: str = "") -> str:
     """
     指定したファイル名の中身を文字列として返す。
     該当するファイルがない場合は、空文字列を返す。
     """
 
-    file_path = find_file_path(file_name)
+    file_path = find_file_path(file_name, search_dir)
 
     # 該当するファイルがなかった場合は、空文字列を返す
     if not file_path:

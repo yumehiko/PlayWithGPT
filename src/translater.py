@@ -1,6 +1,6 @@
-from modules.talker import Talker
-from modules.talker_type import TalkerType
-from modules.chat_message import ChatMessage
+from .talker import Talker
+from .talker_type import TalkerType
+from .chat_message import ChatMessage
 from typing import List, Dict
 import requests
 import openai
@@ -40,6 +40,16 @@ class Translater(ABC):
         与えられたテキストを翻訳して返す。
         """
         pass
+
+
+
+class NoTranslater(Translater):
+    """
+    翻訳なし。
+    """
+
+    async def translate(self, message: ChatMessage, language: Language) -> ChatMessage:
+        return message
 
 
 

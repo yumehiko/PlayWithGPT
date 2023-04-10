@@ -1,0 +1,4 @@
+class Hello
+
+say(num: int) -> str
+Returns "Hello" for the number of num.

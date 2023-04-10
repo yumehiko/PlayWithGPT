@@ -1,13 +1,10 @@
+import os
 
 
-
-def generate_module(file_name: str, source_code: str) -> None:
+def generate_module(file_name: str, source_code: str, directory: str = "src") -> str:
     """
-    ファイル名とソースコードから、.pyファイルを生成する。
+    ファイル名とソースコードから、.pyファイルを生成し、そのパスを返す。
     """
-
-    # .pyまでを抜き出し、ファイル名とする。
-    directory = "modules/"
 
     # codeにpythonコードブロックが含まれている場合、その中身を抜き出す。
     if "```python" in source_code:
@@ -20,8 +17,11 @@ def generate_module(file_name: str, source_code: str) -> None:
         pass
 
     # .pyファイルに書き出す
-    with open(directory + file_name, 'w', encoding="utf-8") as f:
+    result_path = os.path.join(directory, file_name)
+    with open(result_path, 'w', encoding="utf-8") as f:
         f.write(source_code)
+    
+    return result_path
 
 
 def split_by_pythoncodeBlock(chat_text: str) -> str:

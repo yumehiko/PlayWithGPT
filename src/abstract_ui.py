@@ -1,9 +1,6 @@
-
-
+from .chat_message import ChatMessage
+from .talker import Talker
 from abc import ABC, abstractmethod
-from modules.chat_message import ChatMessage
-from modules.talker import Talker
-
 
 class AbstractUI(ABC):
     def __init__(self, system_talker: Talker) -> None:

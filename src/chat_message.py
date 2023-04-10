@@ -1,6 +1,5 @@
+from .talker_type import TalkerType
 from rx.subject import Subject # type: ignore[attr-defined]
-from modules.talker_type import TalkerType
-
 
 
 class SenderInfo:
