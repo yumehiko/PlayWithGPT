@@ -1,5 +1,0 @@
-openai:
-  api_key: # ここにあなたのOpenAIのAPIキーを入れて、拡張子を.yamlにしてね！
-deepl:
-  api_key_free: # ここにあなたのDeepL（Free版）のAPIキーを入れてね！（なくても遊べます）
-  api_key: # ここにあなたのDeepLのAPIキーを入れてね！（なくても遊べます）

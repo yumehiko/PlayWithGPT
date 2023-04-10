@@ -6,6 +6,7 @@ from .gptBot import GPTBot
 from .session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession
 from .auto_task_session import AutoTaskSession
 from .translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
+from dotenv import load_dotenv
 import openai
 import yaml
 import os
@@ -21,15 +22,16 @@ class SessionFactory:
         self.view = view
         self.system_talker = system_talker
 
-        # 設定ファイルからAPIキーを読み込み、OpenAIのAPIキーとして設定する。
-        with open("key.yaml") as key_file:
-            config = yaml.safe_load(key_file)
-            openai.api_key = config["openai"]["api_key"]
-            # APIキーが設定できたか確認し、設定されていない場合は例外を返す
-            if not openai.api_key:
-                raise ValueError("APIKey is not set.")
-            self.deepl_api_key_free = config["deepl"]["api_key_free"]
-            self.deepl_api_key = config["deepl"]["api_key"]
+        # APIキーを.envから読み込む。
+        openai.api_key = os.getenv("OPENAI_API_KEY", "")
+        self.deepl_api_key = os.getenv("DEEPL_API_KEY", "")
+        self.deepl_free_api_key = os.getenv("DEEPL_FREE_API_KEY", "")
+        self.pinecone_api_key = os.getenv("PINECONE_API_KEY", "")
+        self.pinecone_enviroment = os.getenv("PINECONE_ENVIRONMENT", "")
+
+        # OpenAIのAPIキーが設定できたか確認し、設定されていない場合は例外を返す
+        if not openai.api_key:
+            raise ValueError("APIKey is not set.")
 
 
     async def ask_app_mode(self) -> Session:
@@ -215,9 +217,9 @@ class SessionFactory:
 
 
     def pick_translater(self, translate_mode: TranslateType) -> Translater:
-        if translate_mode == TranslateType.deepl_free and self.deepl_api_key_free:
-            return DeepLFreeTranslater(self.deepl_api_key_free)
-        elif translate_mode == TranslateType.deepl_free and not self.deepl_api_key_free:
+        if translate_mode == TranslateType.deepl_free and self.deepl_free_api_key:
+            return DeepLFreeTranslater(self.deepl_free_api_key)
+        elif translate_mode == TranslateType.deepl_free and not self.deepl_free_api_key:
             message = ChatMessage("DeepL APIキーが設定されていません。ChatGPT翻訳で実行します。", self.system_talker.sender_info, False)
             self.view.print_message(message)
             return GptTranslater(self.system_talker)

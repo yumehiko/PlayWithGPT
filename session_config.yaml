@@ -1,4 +1,4 @@
 !SessionConfig
-participants: [test_coder]
-session_type: auto_task
+participants: [user, traveler]
+session_type: one_on_one
 translate_type: none
