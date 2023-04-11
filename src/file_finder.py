@@ -1,6 +1,29 @@
 import os
 
 
+def find_file_list(search_dir: str) -> list[str]:
+    """
+    指定したディレクトリ内のファイル名のリストを返す。
+    """
+    # モジュールファイルの親ディレクトリ
+    repo_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # 検索対象のディレクトリを決定する
+    if not search_dir:
+        search_dir = repo_path
+    else:
+        search_dir = os.path.join(repo_path, search_dir)
+
+    # 指定したディレクトリ直下に存在するファイル名のリストを取得する
+    # サブディレクトリ以下や.DS_Storeなどの隠しファイルは除く
+    file_list = []
+    for file in os.listdir(search_dir):
+        if not file.startswith('.') and os.path.isfile(os.path.join(search_dir, file)):
+            file_list.append(file)
+    
+    return file_list
+
+
 def find_file_path(file_name: str, search_dir: str = "") -> str:
     """
     指定したディレクトリ内で、指定したファイル名を持つファイルのパスを返す。

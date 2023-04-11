@@ -11,14 +11,24 @@ from src.gui import GUI
 from src.session_factory import SessionFactory
 from src import log_writer
 import asyncio
+import openai
+import os
+from dotenv import load_dotenv
 
 class Main:
     def __init__(self) -> None:
         """
         アプリケーションの初期化を行う。
         """
+
+        # APIキーを.envから読み込む。
+        openai.api_key = os.getenv("OPENAI_API_KEY", "")
+        # OpenAIのAPIキーが設定できたか確認し、設定されていない場合は例外を返す
+        if not openai.api_key:
+            raise ValueError("APIKey is not set.")
+        
         # system_talkerはシステムとしての発言を行うためのオブジェクト。
-        self.system_talker = Talker(TalkerType.system, "System")
+        self.system_talker = Talker(TalkerType.system, "system", "System")
 
         # GUIモードのインターフェースを生成する。
         self.view = GUI(self.system_talker)

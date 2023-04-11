@@ -3,8 +3,10 @@ from .talker import Talker
 from .chat_message import ChatMessage
 from .user import User
 from .gptBot import GPTBot
-from .session import Session, SessionConfig, SessionType, SessionConfigLoader, OneOnOneSession, BotOnBotSession
+from .session import Session, SessionConfig, SessionType, SessionConfigLoader
 from .auto_task_session import AutoTaskSession
+from .one_on_one_session import OneOnOneSession
+from .bot_on_bot_session import BotOnBotSession
 from .translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
 from dotenv import load_dotenv
 import openai
@@ -22,16 +24,8 @@ class SessionFactory:
         self.view = view
         self.system_talker = system_talker
 
-        # APIキーを.envから読み込む。
-        openai.api_key = os.getenv("OPENAI_API_KEY", "")
-        self.deepl_api_key = os.getenv("DEEPL_API_KEY", "")
-        self.deepl_free_api_key = os.getenv("DEEPL_FREE_API_KEY", "")
-        self.pinecone_api_key = os.getenv("PINECONE_API_KEY", "")
-        self.pinecone_enviroment = os.getenv("PINECONE_ENVIRONMENT", "")
-
-        # OpenAIのAPIキーが設定できたか確認し、設定されていない場合は例外を返す
-        if not openai.api_key:
-            raise ValueError("APIKey is not set.")
+        self.DEEPL_API_KEY = os.getenv("DEEPL_API_KEY", "")
+        self.DEEPL_FREE_API_KEY = os.getenv("DEEPL_FREE_API_KEY", "")
 
 
     async def ask_app_mode(self) -> Session:
@@ -217,9 +211,9 @@ class SessionFactory:
 
 
     def pick_translater(self, translate_mode: TranslateType) -> Translater:
-        if translate_mode == TranslateType.deepl_free and self.deepl_free_api_key:
-            return DeepLFreeTranslater(self.deepl_free_api_key)
-        elif translate_mode == TranslateType.deepl_free and not self.deepl_free_api_key:
+        if translate_mode == TranslateType.deepl_free and self.DEEPL_FREE_API_KEY:
+            return DeepLFreeTranslater(self.DEEPL_FREE_API_KEY)
+        elif translate_mode == TranslateType.deepl_free and not self.DEEPL_FREE_API_KEY:
             message = ChatMessage("DeepL APIキーが設定されていません。ChatGPT翻訳で実行します。", self.system_talker.sender_info, False)
             self.view.print_message(message)
             return GptTranslater(self.system_talker)
