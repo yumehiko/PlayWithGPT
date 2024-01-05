@@ -76,7 +76,7 @@ class GptTranslater(Translater):
         print("原文：", message.text)
 
         if language == Language.JP:
-            command = "次の文章を日本語に翻訳しなさい："
+            command = "Translate the following sentences into Japanese: "
         elif language == Language.EN:
             command = "次の文章を英語に翻訳しなさい："
         else:

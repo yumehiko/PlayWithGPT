@@ -5,6 +5,7 @@ from .user import User
 from .gptBot import GPTBot
 from .session import Session, SessionConfig, SessionType, SessionConfigLoader
 from .auto_task_session import AutoTaskSession
+from .agi_session import AgiSession
 from .one_on_one_session import OneOnOneSession
 from .bot_on_bot_session import BotOnBotSession
 from .translater import Translater, GptTranslater, DeepLFreeTranslater, TranslateType
@@ -41,6 +42,8 @@ class SessionFactory:
             return await self.make_bot_on_bot_session()
         elif session_type == SessionType.auto_task:
             return await self.make_auto_task_session()
+        elif session_type == SessionType.agi:
+            return await self.make_agi_session()
         else:
             raise ValueError("Invalid session type.")
 
@@ -89,6 +92,19 @@ class SessionFactory:
         """
         session = AutoTaskSession(self.view, self.system_talker)
         return session
+    
+    async def make_agi_session(self, translate_type: TranslateType = TranslateType.undefined) -> Session:
+        """
+        AGIセッションを作成する。
+        """
+        if translate_type == TranslateType.undefined:
+            translate_type = await self.ask_translate_mode()
+        user = User(self.view)
+        session = AgiSession(self.view, self.system_talker, user, translate_type)
+        if translate_type != TranslateType.none:
+            translater = self.pick_translater(translate_type)
+            session.set_translater(translater)
+        return session
 
 
     async def ask_load_last_session_config(self) -> bool:
@@ -128,6 +144,8 @@ class SessionFactory:
             return await self.make_bot_on_bot_session(session_config.participant_names, session_config.translate_type)
         elif session_type == SessionType.auto_task:
             return await self.make_auto_task_session()
+        elif session_type == SessionType.agi:
+            return await self.make_agi_session(session_config.translate_type)
         else:
             raise ValueError("Invalid session type.")
         
@@ -138,6 +156,7 @@ class SessionFactory:
             "O": ("One-on-One", SessionType.one_on_one),
             "B": ("Bot-on-Bot", SessionType.bot_on_bot),
             "G": ("自動タスク処理", SessionType.auto_task),
+            "A": ("AGI", SessionType.agi),
             "Q": ("終了", SessionType.cancel)
         }
 

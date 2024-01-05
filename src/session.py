@@ -19,6 +19,7 @@ class SessionType(Enum):
     one_on_one = 2
     bot_on_bot = 3
     auto_task = 4
+    agi = 5
 
 
 
@@ -83,7 +84,7 @@ class Session(ABC):
             "=== 会話を開始します ===",
         ]
         manual_text = "\n".join(manuals)
-        self.view.print_message_as_system(manual_text, False)
+        self.print_message_as_system(manual_text, False)
         self.main_loop = asyncio.create_task(self.session_loop())
         
         try:
@@ -149,6 +150,12 @@ class Session(ABC):
         会話処理。
         """
         pass
+
+    def print_message_as_system(self, text:str, should_log: bool = True) -> None:
+        """
+        システムからのメッセージをチャット欄に表示する。
+        """
+        self.print_message(ChatMessage(text, self.system_talker.sender_info, should_log=should_log))
 
 
     def print_message(self, message: ChatMessage) -> None:

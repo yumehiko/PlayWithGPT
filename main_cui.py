@@ -73,7 +73,7 @@ class Main:
         message_text = "=== セッションを終了しました ===\n"
         for key, value in end_types.items():
             message_text += f"    ({key}) {value}\n"
-        self.view.print_message_as_system(message_text, False)
+        self.view.print_message_as_system(message_text)
         self.view.enable_user_input()
         user_input = ""
         while user_input not in end_types:
@@ -83,7 +83,7 @@ class Main:
             except asyncio.CancelledError:
                 raise
         message_text = f"{end_types[user_input]}を選択しました。"
-        self.view.print_message_as_system(message_text, False)
+        self.view.print_message_as_system(message_text)
         if user_input == "N":
             await self.run()
         elif user_input == "R":

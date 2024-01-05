@@ -14,8 +14,10 @@ def memory_code(file_name: str) -> None:
 if __name__ == "__main__":
     hippocampus = Hippocampus()
 
-    results = hippocampus.query_memory("Classes for bot-to-bot conversations", 3)
+    results = hippocampus.query_memory("Hello Class", 3)
     print(results)
-    query = f"Classes on which {results[0]} depends"
-    results = hippocampus.query_memory(query, 3)
-    print(results)
+    
+    file_name = os.path.basename(results[0])
+    dir_name = os.path.dirname(results[0])
+    file = file_finder.read_file(file_name, dir_name)
+    print(file)

@@ -42,10 +42,15 @@ class BotOnBotSession(Session):
                     self.view.process_event()
                 self.send_to_all(message)
                 self.print_message(printable_message)
-
-                # botが発言するたびに、ユーザーからの入力を5秒待ち、もし入力があった場合、セッションを終了する。
-                # 入力がなかった場合、セッションを続行する。
-                # TODO: set_place_holder()を実装する。
-                # TODO: ユーザーからの入力を受け取ると、セッションを終了する。
+                # 5秒間、ユーザーからの入力を待ち、入力があれば終了する。
+                self.is_end = await self.wait_end_input()
             except asyncio.CancelledError:
                 raise
+        
+    async def wait_end_input(self) -> bool:
+        # 5秒間、ユーザーからの入力を待ち、入力があればTrueを返す。
+        try:
+            await asyncio.wait_for(self.view.request_user_input(), timeout=5.0)
+            return True
+        except asyncio.TimeoutError:
+            return False

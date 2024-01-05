@@ -37,6 +37,8 @@ def saveJson() -> None:
     """
     これまでに記録したログデータをjson形式で保存する
     """
+    print("saveJson() called.")
+    print(logData)
 
     # ログが空なら、何もしない
     if len(logData) == 0:

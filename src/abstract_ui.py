@@ -23,10 +23,15 @@ class AbstractUI(ABC):
         pass
 
 
-    def print_message_as_system(self, text: str, should_log: bool = True) -> ChatMessage:
-        message = ChatMessage(text, self.system_talker.sender_info, should_log)
+    def print_message_as_system(self, text: str) -> ChatMessage:
+        """
+        システムからのメッセージをチャット欄に表示する。
+        ログには保存されない。
+        """
+        message = ChatMessage(text, self.system_talker.sender_info, False)
         self.print_message(message)
         return message
+
 
     @abstractmethod
     def enable_user_input(self) -> None:
